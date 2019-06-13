@@ -97,7 +97,7 @@ function make_slides(f) {
       console.log(response)
 
 
-      if (response == "") {
+      if ( (response == "") || (isNaN(response) ) ) {
         $(".err").show();
       } else {
         this.log_responses();

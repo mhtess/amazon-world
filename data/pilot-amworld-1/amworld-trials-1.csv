@@ -71,6 +71,54 @@ complex,21,different,NA,NA,NA,NA,2,$100,hat,2,$30,sporting goods,shoes,tshirt,so
 complex,22,same,NA,NA,NA,NA,2,$100,table,1,$50,furniture,lamp,endtable,NA,NA,56e79a4e002696661e1e87e7bc0e9232
 complex,23,different,NA,NA,NA,NA,4,$100,suitcase,2,$30,thrift,"hammer, jacket, book",pan,spatula,grocery,56e79a4e002696661e1e87e7bc0e9232
 complex,24,same,NA,NA,NA,NA,2,$1000,laptop,1,$50,electronics,discs,mouse,NA,NA,56e79a4e002696661e1e87e7bc0e9232
+simple,1,bathroom,costs,$50,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,2,kitchen,costs,$50,weighs,50 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,3,bathroom,costs,$50,weighs,15 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,4,study,costs,$20,weighs,5 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,5,bedroom,costs,$50,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,6,study,costs,$50,weighs,50 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,7,study,costs,$50,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,8,bedroom,costs,$500,weighs,15 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,9,kitchen,costs,$20,weighs,5 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,10,study,costs,$50,weighs,5 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,11,kitchen,costs,$500,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,12,study,costs,$20,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,13,bedroom,costs,$500,weighs,50 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,14,kitchen,costs,$500,weighs,5 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,15,bedroom,costs,$500,weighs,5 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,16,study,costs,$500,weighs,15 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,17,bathroom,costs,$500,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,18,bathroom,costs,$500,weighs,15 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,19,study,costs,$20,weighs,50 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,20,bedroom,costs,$50,weighs,15 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+complex,21,same,NA,NA,NA,NA,2,$100,table,1,$50,furniture,chair,lamp,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+complex,22,different,NA,NA,NA,NA,4,$100,suitcase,2,$30,department,"socks,underwear,toothpaste",pots,spatula,cooking,6aa120c109fb90b083cf1a60a5a580f1
+complex,23,different,NA,NA,NA,NA,2,$100,hat,2,$30,clothing,shoes,pajamas,socks,department,6aa120c109fb90b083cf1a60a5a580f1
+complex,24,same,NA,NA,NA,NA,2,$1000,laptop,1,$50,electronic,printer,game,NA,NA,6aa120c109fb90b083cf1a60a5a580f1
+simple,1,kitchen,costs,$50,NA,NA,NA,NA,NA,NA,NA,NA,blender,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,2,study,costs,$20,weighs,5 pounds,NA,NA,NA,NA,NA,NA,lamp,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,3,bathroom,costs,$50,weighs,50 pounds,NA,NA,NA,NA,NA,NA,toilet,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,4,bedroom,costs,$20,weighs,5 pounds,NA,NA,NA,NA,NA,NA,mirror,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,5,study,costs,$50,weighs,15 pounds,NA,NA,NA,NA,NA,NA,chair,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,6,kitchen,costs,$50,weighs,15 pounds,NA,NA,NA,NA,NA,NA,skillet,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,7,kitchen,costs,$500,weighs,5 pounds,NA,NA,NA,NA,NA,NA,stovetop,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,8,study,costs,$500,weighs,50 pounds,NA,NA,NA,NA,NA,NA,desk,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,9,bathroom,costs,$500,weighs,5 pounds,NA,NA,NA,NA,NA,NA,sink,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,10,study,costs,$50,NA,NA,NA,NA,NA,NA,NA,NA,pen,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,11,study,costs,$20,weighs,15 pounds,NA,NA,NA,NA,NA,NA,encyclopedia,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,12,bathroom,costs,$20,weighs,50 pounds,NA,NA,NA,NA,NA,NA,countertop,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,13,study,costs,$500,weighs,15 pounds,NA,NA,NA,NA,NA,NA,recliner,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,14,study,costs,$500,NA,NA,NA,NA,NA,NA,NA,NA,rug,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,15,bedroom,costs,$50,weighs,50 pounds,NA,NA,NA,NA,NA,NA,ottoman,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,16,bathroom,costs,$500,weighs,50 pounds,NA,NA,NA,NA,NA,NA,tub,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,17,bedroom,costs,$50,weighs,15 pounds,NA,NA,NA,NA,NA,NA,table,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,18,bedroom,costs,$500,weighs,15 pounds,NA,NA,NA,NA,NA,NA,dresser,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,19,bedroom,costs,$500,weighs,5 pounds,NA,NA,NA,NA,NA,NA,comforter,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+simple,20,bedroom,costs,$20,weighs,15 pounds,NA,NA,NA,NA,NA,NA,mirror,NA,NA,NA,401d081aa68fc4924312915e38f8ef00
+complex,21,different,NA,NA,NA,NA,4,$100,suitcase,2,$30,department,"socks, shoes, underwear",knife,spatula,kitchen,401d081aa68fc4924312915e38f8ef00
+complex,22,different,NA,NA,NA,NA,2,$100,hat,2,$30,department,scarf,shoestrings,socks,shoe,401d081aa68fc4924312915e38f8ef00
+complex,23,same,NA,NA,NA,NA,2,$100,table,1,$50,furniture,hatstand,rug,NA,NA,401d081aa68fc4924312915e38f8ef00
+complex,24,same,NA,NA,NA,NA,2,$1000,laptop,1,$50,computer,flashdrive,software,NA,NA,401d081aa68fc4924312915e38f8ef00
 simple,1,kitchen,costs,$20,weighs,15 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,8ad6d8c1bb0bb103bd8fdf18d47474ae
 simple,2,kitchen,costs,$50,weighs,50 pounds,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,8ad6d8c1bb0bb103bd8fdf18d47474ae
 simple,3,study,costs,$20,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,8ad6d8c1bb0bb103bd8fdf18d47474ae

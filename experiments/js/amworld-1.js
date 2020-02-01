@@ -5,7 +5,7 @@ function make_slides(f) {
      name : "i0",
      start: function() {
       exp.startT = Date.now();
-      $("#n_trials").html(exp.n_trials)
+      $("#n_trials").html(exp.n_trials + 6)
       $("#estimate_duration").html(exp.estimate_duration)
      }
   });
@@ -511,7 +511,7 @@ function init() {
   //make corresponding slides:
   exp.slides = make_slides(exp);
 
-  exp.nQs = utils.get_exp_length(); //this does not work if there are stacks of stims (but does work for an experiment with this structure)
+  exp.nQs = 26//utils.get_exp_length(); //this does not work if there are stacks of stims (but does work for an experiment with this structure)
                     //relies on structure and slides being defined
 
   $('.slide').hide(); //hide everything

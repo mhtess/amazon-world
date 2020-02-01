@@ -1,15 +1,16 @@
 
 
-var locations = ["kitchen", "bathroom", "study"]
+var locations = ["kitchen", "bathroom", "study", "bedroom"]
 var cost_properties = [
   {verb: "costs", amount: "$20"},
   {verb: "costs", amount: "$50"},
-  {verb: "costs", amount: "$100"},
+  // {verb: "costs", amount: "$100"},
   {verb: "costs", amount: "$500"}
 ]
 
 var weight_properties = [
   {verb: "weighs", amount: "5 pounds"},
+  {verb: "weighs", amount: "15 pounds"},
   {verb: "weighs", amount: "50 pounds"},
   false
 ]

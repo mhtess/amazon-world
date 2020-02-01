@@ -254,7 +254,7 @@ function make_slides(f) {
            break;
           case "objectID":
              if (this.stim.type == "simple") {
-               responses.push(["object_0", $("#object_response").val()])
+               responses.push(["object_0", $("#objectID_response").val()])
              }  else {
                responses.push(["object_0", $("#object_response1").val()])
                responses.push(["object_1", $("#object_response2").val()])

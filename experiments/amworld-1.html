@@ -23,10 +23,28 @@
     <script src="_shared/js/utils.js"></script>
     <!-- if you want to draw cute creatures (depends on raphael): -->
     <!-- <script src="_shared/js/ecosystem.js"></script> -->
+    <script src="_shared/js/uniqueturker.js"></script>
 
     <!-- experiment specific helper functions -->
     <!-- <script src="js/local-utils.js"></script> -->
-
+    <script type="text/javascript">
+     function USOnly() {var accessKey = 'b487843addca6e9ec32e6ae28aeaa022';
+       $.ajax({
+         url: 'https://api.ipstack.com/check?access_key='+accessKey,
+         dataType: 'jsonp',
+         success: function(json) {
+         if (json.country_code != 'US') {
+           var slides = document.getElementsByClassName('slide');
+           for (i=0; i<slides.length; i++) {
+         slides[i].style.display = 'none';
+       }
+       document.getElementsByClassName('progress')[0].style.display = 'none';
+           document.getElementById('unique').innerText = "This HIT is only available to workers in the United States. Please click 'Return' to avoid any impact on your approval rating.";
+         }
+       }
+     });
+   }
+   </script>
     <!--CSS-->
     <link href="_shared/full-projects/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
     <link href="_shared/css/cocolab-style.css" rel="stylesheet" type="text/css"/>
@@ -73,7 +91,7 @@
         </div>
       </div>
     <p class='instructions'>
-       <em>I have been told to find certain objects but only know certain things about what I'm supposed to find. Please help me!</em></p>
+       <em>I have been told to find certain objects inside rooms of a house but only know certain things about what I'm supposed to find. Please help me!</em></p>
     <button onclick="_s.button()">Continue</button>
   </div>
 

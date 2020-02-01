@@ -174,10 +174,23 @@ function make_slides(f) {
             response = $("#weight_response").val()
             break;
           case "objectID":
+            // debugger;
+            if (this.stim.type == "complex") {
+              response = [$("#object_response1").val(), $("#object_response2").val()]
+              multiple_responses_0 = (this.stim.objects[0].number > this.stim.objects[0].objectIDs.length + 1)
+              multiple_responses_1 = (this.stim.objects[1].number > this.stim.objects[1].objectIDs.length + 1)
+              multi_word_response = multiple_responses_0 ? multiple_responses_1 ? false :
+                  response[1].split(' ').length > 1 :
+                  multiple_responses_1 ? response[0].split(' ').length > 1 :
+                  response.some(function(r){ return r.split(' ').length > 1 })
+            } else {
+              response = [$("#objectID_response").val()]
+              multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
+            }
             // FIX ME: be sensitive to whether or not we are expecting multiple responses in a text box
-            response = this.stim.type == "simple" ? [$("#objectID_response").val()]: [$("#object_response1").val(), $("#object_response2").val()]
+            // response = this.stim.type == "simple" ? [$("#objectID_response").val()]: [$("#object_response1").val(), $("#object_response2").val()]
             no_response = response.some(function(r){ return r == "" })
-            multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
+            // multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
             hyphen_response = response.some(function(r){ return r.includes('-') })
             break;
           case "store":
@@ -457,6 +470,17 @@ function init() {
   exp.trials = [];
   exp.catch_trials = [];
 
+  repeatWorker = false;
+  (function(){
+      var ut_id = "mht-amz-20200131";
+      if (UTWorkerLimitReached(ut_id)) {
+        $('.slide').empty();
+        repeatWorker = true;
+        alert("You have already completed the maximum number of HITs allowed by this requester. Please click 'Return HIT' to avoid any impact on your approval rating.");
+      }
+  })();
+
+
   exp.system = {
       Browser : BrowserDetect.browser,
       OS : BrowserDetect.OS,
@@ -465,14 +489,15 @@ function init() {
       screenW: screen.width,
       screenUW: exp.width
     };
-  console.log(simple_stimuli)
-  exp.stimuli = _.shuffle(simple_stimuli)
+
+  exp.n_trials = 20
+  // console.log(simple_stimuli)
+  exp.stimuli = _.shuffle(simple_stimuli).slice(0, exp.n_trials)
   // exp.stimuli = _.shuffle(conditioning_stimuli.map(function(x){ return _.extend(x, {type: "simple"})}))
-  exp.n_trials = exp.stimuli.length
-  exp.estimate_duration = exp.n_trials / 1
+  exp.estimate_duration = exp.n_trials * 0.75
   //blocks of the experiment:
   exp.structure=[
-    // "i0",
+    "i0",
     "instructions",
     "simple_instructions",
     "one_slider",

@@ -17,6 +17,23 @@ function make_slides(f) {
     }
   });
 
+  slides.simple_instructions = slide({
+    name : "simple_instructions",
+    button : function() {
+      exp.go(); //use exp.go() if and only if there is no "present" data.
+    }
+  });
+
+  slides.complex_instructions = slide({
+    name : "complex_instructions",
+    start: function(){
+      exp.slides.one_slider.present = _.shuffle(complex_stimuli)
+    },
+    button : function() {
+      exp.go(); //use exp.go() if and only if there is no "present" data.
+    }
+  });
+
   slides.single_trial = slide({
     name: "single_trial",
     start: function() {
@@ -48,10 +65,26 @@ function make_slides(f) {
 
     //this gets run only at the beginning of the block
     present_handle : function(stim) {
+      // stim.query = "objectID"
       $(".err").hide();
+      $(".multiword_error").hide();
+
       $("#weight_container").hide()
       $("#price_container").hide()
+      // $("#object_container").hide()
       $("#slider_table").hide()
+      $("#box_img2").hide()
+      $("#price_response").val('')
+      $("#weight_response").val('')
+      $("#objectID_response").val('')
+      $("#objectID_instructions").hide();
+
+      $("#speaker_box").html(
+        stim.type == "complex" ?
+          '<img src="_shared/images/cubert.png" alt="cubert" id="cubert_img"  height="150"></img>' :
+          '<img src="_shared/images/bear_straight.png" alt="bear" id="bear_img" height="150"></img>'
+        )
+
 
       switch (stim.query) {
         case "price":
@@ -60,6 +93,10 @@ function make_slides(f) {
         case "weight":
           $("#weight_container").show();
           break;
+        case "objectID":
+          $("#object_container").show();
+          $("#objectID_instructions").show();
+          break;
         case "slider":
           this.init_sliders();
           exp.sliderPost = null;
@@ -67,38 +104,101 @@ function make_slides(f) {
       }
 
       this.stim = stim;
-
       var prompt = ""
-      stim.num_objects ?
-        prompt+="There are " + stim.num_objects + " objects in the box. <br>" : null
-      stim.contents_information.type ?
-        prompt+= stim.contents_information.type[1] + " of the objects are " +
-          stim.contents_information.type[0] +".<br>": null
-      stim.box_information.price ?
-        prompt+= "The box costs " + stim.box_information.price + " in total.<br>": null
+
+      switch (stim.type){
+        case "simple":
+          if (stim.location) {
+            prompt+="I've been told to look for something in the <strong>" + stim.location + "</strong>.<br>";
+          }
+          prompt+="I've been told that "
+          prompt+=stim.properties.map(function(p){ return "it " + p.verb + " <strong>" + p.amount + "</strong>"}).join(" and that ")
+          prompt+=",<br> but I don't know anything else about it."
+          $("#object_container").html('<input type="text" pattern="[a-z]*" id="objectID_response"></input>')
+          stim.question = "What do you think it could be?"
+          $(".query").html(stim.question);
+          break;
+        case "complex":
+          $(".query").html("");
+          prompt+="<small>My friend and I found some receipts but we can't remember what we bought.</small><br>";
+          prompt+="I know that we went shopping at " + (stim.location == "same" ? "the <strong>same</strong> store" : "<strong>different</strong> stores") + "."
+          prompt+="<br>I spent <strong>" + stim.objects[0].price + "</strong> and got <strong>" + stim.objects[0].number + "</strong> " + (stim.objects[0].number > 1 ? "things" : "thing") + "."
+          prompt+="<br>My friend spent <strong>" + stim.objects[1].price + "</strong> and got <strong>" + stim.objects[1].number + "</strong> " + (stim.objects[1].number > 1 ? "things" : "thing") + "."
+          hasObjects = stim.objects.map(function(x){return x.objectIDs.length > 0 })
+          prompt+="<br>"+(hasObjects[0] ? "I can see that I bought a <strong>" + stim.objects[0].objectIDs.join("</strong> and a <strong>") + "</strong> but I don't know what my other item(s) were." : "")
+          prompt+="<br>"+(hasObjects[1] ? "I can see that my friend bought a <strong>" + stim.objects[1].objectIDs.join("</strong> and a <strong>") + "</strong> but I don't know what their other item(s) were." : "")
+
+          for (i=0; i<stim.query.length; i++){
+            switch(stim.query[i]){
+              case "store":
+                store_question = "<em>" + (stim.location == "same" ? "What kind of store did they go to?" : "What kind of stores did they go to?") + "</em><br>"
+
+                $("#store_container").html(
+                  store_question + (stim.location == "same" ?
+                  'Cubert and his friend went to a/an <input type="text" pattern="[a-z]*" id="store_response1"></input> store.' :
+                  'Cubert went to a/an <input type="text" pattern="[a-z]*" id="store_response1"></input> store and their friend went to a/an <input type="text" pattern="[a-z]*" id="store_response2"></input> store.'
+                  )
+                )
+              break;
+              case "objectID":
+                object_question = "<br><em>What did each of them buy?</em><br>"
+                $("#object_container").html(
+                  object_question +
+                  (hasObjects[0] ? "Apart from the " + stim.objects[0].objectIDs.join(" and the ") + ", " : "") +
+                  "Cubert bought: " + '<input type="text" id="object_response1"></input> <br>' + ((stim.objects[0].number > stim.objects[0].objectIDs.length + 1) ? '<small><em>(Please enter a comma separated list of one-word responses.)</em></small>' : '') +  '<br>' +
+                  (hasObjects[1] ? "Apart from the " + stim.objects[1].objectIDs.join(" and the ") + ", " : "") +
+                  "Cubert's friend bought: " + '<input type="text" id="object_response2"></input>' +  ((stim.objects[1].number > stim.objects[1].objectIDs.length + 1) ? '<small><em>(Please enter a comma separated list of one-word responses.)</em></small>' : '')
+                )
+              break;
+            }
+          }
+
+          break;
+      }
 
       $(".prompt").html(prompt);
-
-      $(".query").html(stim.question);
-
 
     },
 
     button : function() {
-      switch (this.stim.query) {
-        case "price":
-          response = $("#price_response").val()
-          break;
-        case "weight":
-          response = $("#weight_response").val()
-          break;
+      multi_word_response = false
+      hyphen_response = false
+
+      for (i=0; i<this.stim.query.length; i++){
+
+        switch(this.stim.query[i]){
+          case "price":
+            response = $("#price_response").val()
+            break;
+          case "weight":
+            response = $("#weight_response").val()
+            break;
+          case "objectID":
+            // FIX ME: be sensitive to whether or not we are expecting multiple responses in a text box
+            response = this.stim.type == "simple" ? [$("#objectID_response").val()]: [$("#object_response1").val(), $("#object_response2").val()]
+            no_response = response.some(function(r){ return r == "" })
+            multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
+            hyphen_response = response.some(function(r){ return r.includes('-') })
+            break;
+          case "store":
+            // debugger;
+            response = this.stim.location == "same" ? [$("#store_response1").val()] : [$("#store_response1").val(), $("#store_response2").val()]
+            no_response = response.some(function(r){ return r == "" })
+            multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
+            hyphen_response = response.some(function(r){ return r.includes('-') })
+            // multi_word_response = multi_word_response.sum()
+            // hyphen_response = multi_word_response.some()
+            break;
+          }
         }
 
       console.log(response)
+      // debugger;
 
-
-      if ( (response == "") || (isNaN(response) ) ) {
+      if (no_response) {
         $(".err").show();
+      } else if (multi_word_response || hyphen_response) {
+        $(".multiword_error").show();
       } else {
         this.log_responses();
 
@@ -108,21 +208,53 @@ function make_slides(f) {
       }
     },
 
-    init_sliders : function() {
-      utils.make_slider("#single_slider", function(event, ui) {
-        exp.sliderPost = ui.value;
-      });
-    },
-
-
     log_responses : function() {
-      exp.data_trials.push({
-        "trial_type" : "one_slider",
-        "response" : exp.sliderPost,
-        "subject": this.stim.subject,
-        "object": this.stim.object,
-        "trial_num": this.trial_num
-      });
+      console.log('log responses')
+      // debugger;
+      propertiesPairs = []
+      if (this.stim.properties){
+        for(i=0;i<this.stim.properties.length;i++){
+          propertiesPairs.push(["verb_"+ i, this.stim.properties[i].verb])
+          propertiesPairs.push(["amount_"+ i, this.stim.properties[i].amount])
+        }
+      }
+      objectInformation = []
+      if (this.stim.objects){
+        for(i=0;i<this.stim.objects.length;i++){
+          objectInformation.push(["number_"+ i, this.stim.objects[i].number])
+          objectInformation.push(["price_"+ i, this.stim.objects[i].price])
+          for (j=0; j<this.stim.objects[i].objectIDs.length; j++){
+            objectInformation.push(["objectID_"+ i + "_" +j, this.stim.objects[i].objectIDs[j]])
+          }
+        }
+      }
+      responses = []
+      for(i=0;i<this.stim.query.length;i++){
+        switch(this.stim.query[i]){
+          case "store":
+            if (this.stim.location == "same") {
+              responses.push(["store_0", $("#store_response1").val()])
+            }  else {
+              responses.push(["store_0", $("#store_response1").val()])
+              responses.push(["store_1", $("#store_response2").val()])
+            }
+           break;
+          case "objectID":
+             if (this.stim.type == "simple") {
+               responses.push(["object_0", $("#object_response").val()])
+             }  else {
+               responses.push(["object_0", $("#object_response1").val()])
+               responses.push(["object_1", $("#object_response2").val()])
+             }
+           break;
+        }
+      }
+      // debugger;
+      exp.data_trials.push(_.extend({
+        "trial_type" : this.stim.type,
+        "trial_num": this.trial_num,
+        "location" : this.stim.location,
+      }, _.object(propertiesPairs.concat(objectInformation).concat(responses))));
       this.trial_num++
     }
   });
@@ -324,7 +456,7 @@ function make_slides(f) {
 function init() {
   exp.trials = [];
   exp.catch_trials = [];
-  exp.condition = _.sample(["CONDITION 1", "condition 2"]); //can randomize between subject conditions here
+
   exp.system = {
       Browser : BrowserDetect.browser,
       OS : BrowserDetect.OS,
@@ -333,19 +465,19 @@ function init() {
       screenW: screen.width,
       screenUW: exp.width
     };
-
-  exp.stimuli = single_box_stimuli
-
+  console.log(simple_stimuli)
+  exp.stimuli = _.shuffle(simple_stimuli)
+  // exp.stimuli = _.shuffle(conditioning_stimuli.map(function(x){ return _.extend(x, {type: "simple"})}))
   exp.n_trials = exp.stimuli.length
   exp.estimate_duration = exp.n_trials / 1
   //blocks of the experiment:
   exp.structure=[
     // "i0",
-    // "instructions",
-    // "single_trial",
+    "instructions",
+    "simple_instructions",
     "one_slider",
-    "multi_slider",
-    "vertical_sliders",
+    "complex_instructions",
+    "one_slider",
     'subj_info',
     'thanks'
   ];

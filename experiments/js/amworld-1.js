@@ -82,7 +82,7 @@ function make_slides(f) {
       $("#speaker_box").html(
         stim.type == "complex" ?
           '<img src="_shared/images/cubert.png" alt="cubert" id="cubert_img"  height="150"></img>' :
-          '<img src="_shared/images/bear_straight.png" alt="bear" id="bear_img" height="150"></img>'
+          '<img src="_shared/images/Bear_straight.png" alt="bear" id="bear_img" height="150"></img>'
         )
 
 

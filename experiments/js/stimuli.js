@@ -1,17 +1,33 @@
 
 
-var locations = ["kitchen", "bathroom", "study", "bedroom"]
+var costs = {
+  low: [5, 10, 20],
+  medium: [30, 50, 100],
+  high: [250, 500, 1000]
+}
+
+var weights = {
+  low: [1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
+  medium: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  high: [40, 45, 50, 55, 60, 65, 70, 85, 90]
+}
+
+var uniformDraw = function(lst){
+  return lst[Math.floor(Math.random()*lst.length)];
+}
+
+
+var locations = ["kitchen", "bathroom", "study", "bedroom", "living room", "basement"]
 var cost_properties = [
-  {verb: "costs", amount: "$20"},
-  {verb: "costs", amount: "$50"},
-  // {verb: "costs", amount: "$100"},
-  {verb: "costs", amount: "$500"}
+  {verb: "costs", general_amount: "low"}, // 5, 10, 20
+  {verb: "costs", general_amount: "medium"}, // 30, 50, 100
+  {verb: "costs", general_amount: "high"} // 250, 500, 1000
 ]
 
 var weight_properties = [
-  {verb: "weighs", amount: "5 pounds"},
-  {verb: "weighs", amount: "15 pounds"},
-  {verb: "weighs", amount: "50 pounds"},
+  {verb: "weighs",  general_amount: "low"},
+  {verb: "weighs", general_amount: "medium"},
+  {verb: "weighs", general_amount: "high"},
   false
 ]
 
@@ -21,8 +37,14 @@ for (loc=0;loc<locations.length; loc++) {
   for (c=0; c<cost_properties.length; c++) {
     for (w=0;w<weight_properties.length; w++) {
       // console.log(w)
-      props = [ cost_properties[c] ]
-      weight_properties[w] ? props.push(weight_properties[w]) : null
+      cost_amount = uniformDraw(costs[cost_properties[c].general_amount])
+      // console.log(cost_amount)
+      props = [ _.extend(cost_properties[c], {amount: "$"+cost_amount}) ]
+
+      weight_amount = weight_properties[w] ? uniformDraw(weights[weight_properties[w].general_amount]) : null
+      // console.log(weight_amount)
+
+      weight_properties[w] ? props.push(_.extend(weight_properties[w], {amount: weight_amount + " pounds"})) : null
 
       simple_stimuli.push(
         {
@@ -36,6 +58,7 @@ for (loc=0;loc<locations.length; loc++) {
   }
 }
 
+// console.log(simple_stimuli)
 // debugger;
 
 // var conditioning_stimuli = [
@@ -85,74 +108,234 @@ for (loc=0;loc<locations.length; loc++) {
 // }
 
 var complex_stimuli = [
-  {
-    location: "same",
-    objects: [
-      {
-        number: 2,
-        objectIDs: ["table"],
-        price: "$100"
-      },
-      {
-        number: 1,
-        price: "$50",
-        objectIDs: []
-      }
-    ],
-    type: "complex",
-    query: ["store", "objectID"]
-  },
-  {
-    location: "same",
-    objects: [
-      {
-        number: 2,
-        objectIDs: ["laptop"],
-        price: "$1000"
-      },
-      {
-        number: 1,
-        price: "$50",
-        objectIDs: []
-      }
-    ],
-    type: "complex",
-    query: ["store", "objectID"]
-  },
-  {
-    location: "different",
-    objects: [
-      {
-        number: 2,
-        objectIDs: ["hat"],
-        price: "$100"
-      },
-      {
-        number: 2,
-        price: "$30",
-        objectIDs: ["socks"]
-      }
-    ],
-    type: "complex",
-    query: ["store", "objectID"]
-  },
-  {
-    location: "different",
-    objects: [
-      {
-        number: 4,
-        objectIDs: ["suitcase"],
-        price: "$100"
-      },
-      {
-        number: 2,
-        price: "$30",
-        objectIDs: ["spatula"]
-      }
-    ],
-    type: "complex",
-    query: ["store", "objectID"]
-  }
+  [
+    {
+      location: "same",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["table"],
+          price: "$100"
+        },
+        {
+          number: 1,
+          price: "$10",
+          objectIDs: []
+        }
+      ],
+      item_name: "change_object",
+      type: "complex",
+      query: ["store", "objectID"]
+    },
+    {
+      location: "same",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["bottle of wine"],
+          price: "$100"
+        },
+        {
+          number: 1,
+          price: "$10",
+          objectIDs: []
+        }
+      ],
+      item_name: "change_object",
+      type: "complex",
+      query: ["store", "objectID"]
+    }
+  ],
+  [
+    {
+      location: "same",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["socks"],
+          price: "$10"
+        },
+        {
+          number: 1,
+          price: "$20",
+          objectIDs: []
+        }
+      ],
+      item_name: "change_price_unknownPerson",
+      type: "complex",
+      query: ["store", "objectID"]
+    },
+    {
+      location: "same",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["socks"],
+          price: "$10"
+        },
+        {
+          number: 1,
+          price: "$2000",
+          objectIDs: []
+        }
+      ],
+      item_name: "change_price_unknownPerson",
+      type: "complex",
+      query: ["store", "objectID"]
+    }
+  ],
+  [
+    {
+      location: "different",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["hat"],
+          price: "$100"
+        },
+        {
+          number: 2,
+          price: "$30",
+          objectIDs: ["socks"]
+        }
+      ],
+      item_name: "same_different",
+      type: "complex",
+      query: ["store", "objectID"]
+    },
+    {
+      location: "same",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["hat"],
+          price: "$100"
+        },
+        {
+          number: 2,
+          price: "$30",
+          objectIDs: ["socks"]
+        }
+      ],
+      item_name: "same_different",
+      type: "complex",
+      query: ["store", "objectID"]
+    }
+  ],
+  [
+    {
+      location: "different",
+      objects: [
+        {
+          number: 3,
+          objectIDs: ["suitcase"],
+          price: "$100"
+        },
+        {
+          number: 2,
+          price: "$30",
+          objectIDs: ["spatula"]
+        }
+      ],
+      item_name: "change_price_knownPerson",
+      type: "complex",
+      query: ["store", "objectID"]
+    },
+    {
+      location: "different",
+      objects: [
+        {
+          number: 3,
+          objectIDs: ["suitcase"],
+          price: "$500"
+        },
+        {
+          number: 2,
+          price: "$30",
+          objectIDs: ["spatula"]
+        }
+      ],
+      item_name: "change_price_knownPerson",
+      type: "complex",
+      query: ["store", "objectID"]
+    }
+  ],
+  [
+    {
+      location: "different",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["magazine"],
+          price: "$30"
+        },
+        {
+          number: 2,
+          price: "$200",
+          objectIDs: ["shotgun"]
+        }
+      ],
+      item_name: "same_different_2",
+      type: "complex",
+      query: ["store", "objectID"]
+    },
+    {
+      location: "same",
+      objects: [
+        {
+          number: 2,
+          objectIDs: ["magazine"],
+          price: "$30"
+        },
+        {
+          number: 2,
+          price: "$200",
+          objectIDs: ["shotgun"]
+        }
+      ],
+      item_name: "same_different_2",
+      type: "complex",
+      query: ["store", "objectID"]
+    }
+  ],
+  [
+    {
+      location: "same",
+      objects: [
+        {
+          number: 1,
+          objectIDs: [],
+          price: "$50"
+        },
+        {
+          number: 3,
+          price: "$30",
+          objectIDs: ["pair of sandals"]
+        }
+      ],
+      item_name: "change_nObjects",
+      type: "complex",
+      query: ["store", "objectID"]
+    },
+    {
+      location: "same",
+      objects: [
+        {
+          number: 1,
+          objectIDs: [],
+          price: "$50"
+        },
+        {
+          number: 1,
+          price: "$30",
+          objectIDs: ["pair of sandals"]
+        }
+      ],
+      item_name: "change_nObjects",
+      type: "complex",
+      query: ["store", "objectID"]
+    }
+  ]
 ]
 
 // var single_box_stimuli = [

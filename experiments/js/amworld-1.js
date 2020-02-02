@@ -34,19 +34,18 @@ function make_slides(f) {
     }
   });
 
-  slides.single_trial = slide({
-    name: "single_trial",
+  slides.debrief = slide({
+    name: "debrief",
     start: function() {
       $(".err").hide();
-      $(".display_condition").html("You are in " + exp.condition + ".");
     },
     button : function() {
       response = $("#text_response").val();
       if (response.length == 0) {
         $(".err").show();
       } else {
-        exp.data_trials.push({
-          "trial_type" : "single_trial",
+        exp.catch_trials.push({
+          "trial_type" : "debrief",
           "response" : response
         });
         exp.go(); //make sure this is at the *end*, after you log your data
@@ -84,8 +83,11 @@ function make_slides(f) {
           '<img src="_shared/images/cubert.png" alt="cubert" id="cubert_img"  height="150"></img>' :
           '<img src="_shared/images/Bear_straight.png" alt="bear" id="bear_img" height="150"></img>'
         )
-
-
+        this.stim = stim;
+      this.expected_responses_0 =  this.stim.objects[0].number - this.stim.objects[0].objectIDs.length
+      this.expected_responses_1 = this.stim.objects[1].number - this.stim.objects[1].objectIDs.length
+      this.expecting_responses_0 = this.expected_responses_0 > 0
+      this.expecting_responses_1 = this.expected_responses_1 > 0
       switch (stim.query) {
         case "price":
           $("#price_container").show();
@@ -103,7 +105,6 @@ function make_slides(f) {
           break;
       }
 
-      this.stim = stim;
       var prompt = ""
 
       switch (stim.type){
@@ -125,8 +126,14 @@ function make_slides(f) {
           prompt+="<br>I spent <strong>" + stim.objects[0].price + "</strong> and got <strong>" + stim.objects[0].number + "</strong> " + (stim.objects[0].number > 1 ? "things" : "thing") + "."
           prompt+="<br>My friend spent <strong>" + stim.objects[1].price + "</strong> and got <strong>" + stim.objects[1].number + "</strong> " + (stim.objects[1].number > 1 ? "things" : "thing") + "."
           hasObjects = stim.objects.map(function(x){return x.objectIDs.length > 0 })
-          prompt+="<br>"+(hasObjects[0] ? "I can see that I bought a <strong>" + stim.objects[0].objectIDs.join("</strong> and a <strong>") + "</strong> but I don't know what my other item(s) were." : "")
-          prompt+="<br>"+(hasObjects[1] ? "I can see that my friend bought a <strong>" + stim.objects[1].objectIDs.join("</strong> and a <strong>") + "</strong> but I don't know what their other item(s) were." : "")
+          prompt+="<br>"+(hasObjects[0] ? "I can see that I bought a <strong>" +
+            stim.objects[0].objectIDs.join("</strong> and a <strong>") +
+            (this.expecting_responses_0 ?  "</strong> but I don't know what my other item(s) were." : ".")
+            : "")
+          prompt+="<br>"+(hasObjects[1] ? "I can see that my friend bought a <strong>" +
+            stim.objects[1].objectIDs.join("</strong> and a <strong>") +
+            (this.expecting_responses_1 ? "</strong> but I don't know what their other item(s) were." : ".")
+             : "")
 
           for (i=0; i<stim.query.length; i++){
             switch(stim.query[i]){
@@ -141,13 +148,27 @@ function make_slides(f) {
                 )
               break;
               case "objectID":
-                object_question = "<br><em>What did each of them buy?</em><br>"
+                object_question = (this.expecting_responses_0 && this.expecting_responses_1) ?
+                  "<br><em>What did each of them buy?</em><br>" :
+                  this.expecting_responses_0 ? "<br><em>What did Cubert buy?</em><br>"  :
+                  this.expecting_responses_1 ? "<br><em>What did Cubert's friend buy?</em><br>" : ""
+
                 $("#object_container").html(
                   object_question +
-                  (hasObjects[0] ? "Apart from the " + stim.objects[0].objectIDs.join(" and the ") + ", " : "") +
-                  "Cubert bought: " + '<input type="text" id="object_response1"></input> <br>' + ((stim.objects[0].number > stim.objects[0].objectIDs.length + 1) ? '<small><em>(Please enter a comma separated list of one-word responses.)</em></small>' : '') +  '<br>' +
-                  (hasObjects[1] ? "Apart from the " + stim.objects[1].objectIDs.join(" and the ") + ", " : "") +
-                  "Cubert's friend bought: " + '<input type="text" id="object_response2"></input>' +  ((stim.objects[1].number > stim.objects[1].objectIDs.length + 1) ? '<small><em>(Please enter a comma separated list of one-word responses.)</em></small>' : '')
+                  (
+                    this.expecting_responses_0 ?
+                    (hasObjects[0] ? "Apart from the " + stim.objects[0].objectIDs.join(" and the ") + ", " : "") +
+                    "Cubert bought: " + '<input type="text" id="object_response1"></input> <br>' +
+                    (
+                      (stim.objects[0].number > stim.objects[0].objectIDs.length + 1) ?
+                    '<small><em>(Please enter a comma separated list of one-word responses.)</em></small>' : ''
+                    ) +  '<br>'
+                  : ""
+                ) +
+                  (this.expecting_responses_1 ?
+                    (hasObjects[1] ? "Apart from the " + stim.objects[1].objectIDs.join(" and the ") + ", " : "") +
+                    "Cubert's friend bought: " + '<input type="text" id="object_response2"></input>' +  ((stim.objects[1].number > stim.objects[1].objectIDs.length + 1) ? '<small><em>(Please enter a comma separated list of one-word responses.)</em></small>' : '')
+                   : "")
                 )
               break;
             }
@@ -178,13 +199,15 @@ function make_slides(f) {
           case "objectID":
             // debugger;
             if (this.stim.type == "complex") {
+              // debugger;
               response = [$("#object_response1").val(), $("#object_response2").val()]
-              multiple_responses_0 = (this.stim.objects[0].number > this.stim.objects[0].objectIDs.length + 1)
-              multiple_responses_1 = (this.stim.objects[1].number > this.stim.objects[1].objectIDs.length + 1)
-              multi_word_response = multiple_responses_0 ? multiple_responses_1 ? false :
-                  response[1].split(' ').length > 1 :
-                  multiple_responses_1 ? response[0].split(' ').length > 1 :
-                  response.some(function(r){ return r.split(' ').length > 1 })
+              expected_responses_0 =  this.stim.objects[0].number - this.stim.objects[0].objectIDs.length
+              expected_responses_1 = this.stim.objects[1].number - this.stim.objects[1].objectIDs.length
+              n_response_0 = expected_responses_0 ? response[0].split(',').length : 0
+              n_response_1 = expected_responses_1 ? response[1].split(',').length : 0
+              correct_n_responses = (n_response_0 == expected_responses_0) && (n_response_1 == expected_responses_1)
+              multi_word_response = !correct_n_responses
+              // debugger;
             } else {
               response = [$("#objectID_response").val()]
               multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
@@ -193,14 +216,16 @@ function make_slides(f) {
             // response = this.stim.type == "simple" ? [$("#objectID_response").val()]: [$("#object_response1").val(), $("#object_response2").val()]
             no_response = response.some(function(r){ return r == "" })
             // multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
-            hyphen_response = response.some(function(r){ return r.includes('-') })
+            hyphen_response = response.some(function(r){ return  r ? r.includes('-') : false})
             break;
           case "store":
             // debugger;
             response = this.stim.location == "same" ? [$("#store_response1").val()] : [$("#store_response1").val(), $("#store_response2").val()]
             no_response = response.some(function(r){ return r == "" })
             multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
+            console.log(multi_word_response)
             hyphen_response = response.some(function(r){ return r.includes('-') })
+            // debugger;
             // multi_word_response = multi_word_response.sum()
             // hyphen_response = multi_word_response.some()
             break;
@@ -494,7 +519,7 @@ function init() {
       screenUW: exp.width
     };
 
-  exp.n_trials = 20
+  exp.n_trials = 24
   // console.log(simple_stimuli)
   exp.stimuli = _.shuffle(simple_stimuli).slice(0, exp.n_trials)
   // exp.stimuli = _.shuffle(conditioning_stimuli.map(function(x){ return _.extend(x, {type: "simple"})}))
@@ -507,6 +532,7 @@ function init() {
     "one_slider",
     "complex_instructions",
     "one_slider",
+    "debrief",
     'subj_info',
     'thanks'
   ];
@@ -515,7 +541,7 @@ function init() {
   //make corresponding slides:
   exp.slides = make_slides(exp);
 
-  exp.nQs = 26//utils.get_exp_length(); //this does not work if there are stacks of stims (but does work for an experiment with this structure)
+  exp.nQs = 30//utils.get_exp_length(); //this does not work if there are stacks of stims (but does work for an experiment with this structure)
                     //relies on structure and slides being defined
 
   $('.slide').hide(); //hide everything

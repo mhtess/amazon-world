@@ -27,7 +27,7 @@ function make_slides(f) {
   slides.complex_instructions = slide({
     name : "complex_instructions",
     start: function(){
-      exp.slides.one_slider.present = _.shuffle(complex_stimuli)
+      exp.slides.one_slider.present = _.shuffle(exp.complex_stimuli)
     },
     button : function() {
       exp.go(); //use exp.go() if and only if there is no "present" data.
@@ -160,6 +160,8 @@ function make_slides(f) {
 
     },
 
+    // CHECK SPACES ON STORE RESPONSES
+    // CHECK NUMBER OF ITEMS ON LIST RESPONSES
     button : function() {
       multi_word_response = false
       hyphen_response = false
@@ -228,6 +230,7 @@ function make_slides(f) {
       if (this.stim.properties){
         for(i=0;i<this.stim.properties.length;i++){
           propertiesPairs.push(["verb_"+ i, this.stim.properties[i].verb])
+          propertiesPairs.push(["generalAmount_"+ i, this.stim.properties[i].general_amount])
           propertiesPairs.push(["amount_"+ i, this.stim.properties[i].amount])
         }
       }
@@ -480,6 +483,7 @@ function init() {
       }
   })();
 
+  exp.complex_stimuli = complex_stimuli.map(uniformDraw)
 
   exp.system = {
       Browser : BrowserDetect.browser,

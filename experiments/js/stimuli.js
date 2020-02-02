@@ -107,6 +107,7 @@ for (loc=0;loc<locations.length; loc++) {
 //   }
 // }
 
+
 var complex_stimuli = [
   [
     {
@@ -338,6 +339,7 @@ var complex_stimuli = [
   ]
 ]
 
+// console.log(sampled_compled_stims)
 // var single_box_stimuli = [
 //   {
 //     num_objects: 3,

@@ -118,7 +118,9 @@
       </div>
 
     <p>Please describe briefly what you did for Bear and Cubert.</p>
-    <input type="text" id="text_response"></input>
+    <!-- <input type="text" id="text_response"></input> -->
+    <textarea id="text_response" rows="3" cols="50"></textarea>
+
     <button onclick="_s.button()">Continue</button>
     <p class="err">Please write something.</p>
   </div>
@@ -144,7 +146,10 @@
     <br>
     <button onclick="_s.button()">Continue</button>
     <div class="err"><font color="darkred">Please input responses into all fields before continuing.</font></div>
-    <div class="multiword_error"><font color="darkred">Your responses must be a one-word answer, with no spaces or hyphens. If you are supposed to enter multiple responses, make sure you have entered the correct number and that they are in a comma separate list.</font></div>
+    <div class="multiword_error"><font color="darkred">Your responses must be a one-word answer, with no spaces or hyphens.</font></div>
+    <div class="needmultiword"><font color="darkred">
+      Make sure you have entered the correct number of items for Cubert and his friend.
+      If there are multiple items to enter, make sure they are in a comma separate list.</font></div>
   </div>
 
   <div class="slide" id="multi_slider">

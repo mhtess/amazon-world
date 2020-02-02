@@ -6,7 +6,7 @@ function make_slides(f) {
      start: function() {
       exp.startT = Date.now();
       $("#n_trials").html(exp.n_trials + 6)
-      $("#estimate_duration").html(exp.estimate_duration)
+      $("#estimate_duration").html(15)
      }
   });
 
@@ -67,6 +67,7 @@ function make_slides(f) {
       // stim.query = "objectID"
       $(".err").hide();
       $(".multiword_error").hide();
+      $(".needmultiword").hide();
 
       $("#weight_container").hide()
       $("#price_container").hide()
@@ -83,11 +84,10 @@ function make_slides(f) {
           '<img src="_shared/images/cubert.png" alt="cubert" id="cubert_img"  height="150"></img>' :
           '<img src="_shared/images/Bear_straight.png" alt="bear" id="bear_img" height="150"></img>'
         )
-        this.stim = stim;
-      this.expected_responses_0 =  this.stim.objects[0].number - this.stim.objects[0].objectIDs.length
-      this.expected_responses_1 = this.stim.objects[1].number - this.stim.objects[1].objectIDs.length
-      this.expecting_responses_0 = this.expected_responses_0 > 0
-      this.expecting_responses_1 = this.expected_responses_1 > 0
+
+      this.stim = stim;
+
+
       switch (stim.query) {
         case "price":
           $("#price_container").show();
@@ -120,6 +120,10 @@ function make_slides(f) {
           $(".query").html(stim.question);
           break;
         case "complex":
+          this.expected_responses_0 =  this.stim.objects[0].number - this.stim.objects[0].objectIDs.length
+          this.expected_responses_1 = this.stim.objects[1].number - this.stim.objects[1].objectIDs.length
+          this.expecting_responses_0 = this.expected_responses_0 > 0
+          this.expecting_responses_1 = this.expected_responses_1 > 0
           $(".query").html("");
           prompt+="<small>My friend and I found some receipts but we can't remember what we bought.</small><br>";
           prompt+="I know that we went shopping at " + (stim.location == "same" ? "the <strong>same</strong> store" : "<strong>different</strong> stores") + "."
@@ -186,7 +190,7 @@ function make_slides(f) {
     button : function() {
       multi_word_response = false
       hyphen_response = false
-
+      no_response = false
       for (i=0; i<this.stim.query.length; i++){
 
         switch(this.stim.query[i]){
@@ -206,25 +210,25 @@ function make_slides(f) {
               n_response_0 = expected_responses_0 ? response[0].split(',').length : 0
               n_response_1 = expected_responses_1 ? response[1].split(',').length : 0
               correct_n_responses = (n_response_0 == expected_responses_0) && (n_response_1 == expected_responses_1)
-              multi_word_response = !correct_n_responses
+              // multi_word_response = !correct_n_responses
               // debugger;
             } else {
               response = [$("#objectID_response").val()]
-              multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
             }
+            multi_word_response = multi_word_response || response.some(function(r){ return r ? r.split(' ').length > 1 : false })
             // FIX ME: be sensitive to whether or not we are expecting multiple responses in a text box
             // response = this.stim.type == "simple" ? [$("#objectID_response").val()]: [$("#object_response1").val(), $("#object_response2").val()]
-            no_response = response.some(function(r){ return r == "" })
+            no_response = no_response || response.some(function(r){ return r == "" })
             // multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
-            hyphen_response = response.some(function(r){ return  r ? r.includes('-') : false})
+            hyphen_response = hyphen_response || response.some(function(r){ return  r ? r.includes('-') : false})
             break;
           case "store":
             // debugger;
             response = this.stim.location == "same" ? [$("#store_response1").val()] : [$("#store_response1").val(), $("#store_response2").val()]
-            no_response = response.some(function(r){ return r == "" })
-            multi_word_response = response.some(function(r){ return r.split(' ').length > 1 })
+            no_response = no_response || response.some(function(r){ return r == "" })
+            multi_word_response = multi_word_response || response.some(function(r){ return r.split(' ').length > 1 })
             console.log(multi_word_response)
-            hyphen_response = response.some(function(r){ return r.includes('-') })
+            hyphen_response = hyphen_response || response.some(function(r){ return r.includes('-') })
             // debugger;
             // multi_word_response = multi_word_response.sum()
             // hyphen_response = multi_word_response.some()
@@ -232,13 +236,18 @@ function make_slides(f) {
           }
         }
 
-      console.log(response)
+      // console.log(response)
       // debugger;
 
       if (no_response) {
         $(".err").show();
       } else if (multi_word_response || hyphen_response) {
+        console.log('multiword error')
+        $(".err").hide();
         $(".multiword_error").show();
+      } else if (!correct_n_responses) {
+        $(".multiword_error").hide();
+        $(".needmultiword").show();
       } else {
         this.log_responses();
 

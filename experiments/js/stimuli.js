@@ -1,9 +1,9 @@
 
 
 var costs = {
-  low: [5, 10, 20],
-  medium: [30, 50, 100],
-  high: [250, 500, 1000]
+  low: [3, 5, 8, 10, 13, 18, 20],
+  medium: [40, 50, 60, 70, 80, 90, 100],
+  high: [250, 300, 400, 500, 600, 750, 1000]
 }
 
 var weights = {
@@ -39,12 +39,16 @@ for (loc=0;loc<locations.length; loc++) {
       // console.log(w)
       cost_amount = uniformDraw(costs[cost_properties[c].general_amount])
       // console.log(cost_amount)
-      props = [ _.extend(cost_properties[c], {amount: "$"+cost_amount}) ]
+      props = [ {verb: cost_properties[c].verb,
+        general_amount: cost_properties[c].general_amount,
+        amount: "$"+cost_amount} ]
 
+      // console.log(props[0].amount)
       weight_amount = weight_properties[w] ? uniformDraw(weights[weight_properties[w].general_amount]) : null
       // console.log(weight_amount)
-
-      weight_properties[w] ? props.push(_.extend(weight_properties[w], {amount: weight_amount + " pounds"})) : null
+      weight_properties[w] ? props.push({verb: weight_properties[w].verb,
+        general_amount: weight_properties[w].general_amount,
+        amount: weight_amount + " pounds"}): null
 
       simple_stimuli.push(
         {
@@ -54,11 +58,13 @@ for (loc=0;loc<locations.length; loc++) {
           type: "simple"
         }
       )
+
+
     }
   }
 }
 
-// console.log(simple_stimuli)
+console.log(simple_stimuli.map(function(x){return x.properties[0].amount}))
 // debugger;
 
 // var conditioning_stimuli = [

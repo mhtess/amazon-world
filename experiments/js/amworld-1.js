@@ -191,6 +191,7 @@ function make_slides(f) {
       multi_word_response = false
       hyphen_response = false
       no_response = false
+      correct_n_responses = true
       for (i=0; i<this.stim.query.length; i++){
 
         switch(this.stim.query[i]){
@@ -227,7 +228,7 @@ function make_slides(f) {
             response = this.stim.location == "same" ? [$("#store_response1").val()] : [$("#store_response1").val(), $("#store_response2").val()]
             no_response = no_response || response.some(function(r){ return r == "" })
             multi_word_response = multi_word_response || response.some(function(r){ return r.split(' ').length > 1 })
-            console.log(multi_word_response)
+            // console.log(multi_word_response)
             hyphen_response = hyphen_response || response.some(function(r){ return r.includes('-') })
             // debugger;
             // multi_word_response = multi_word_response.sum()
@@ -242,7 +243,7 @@ function make_slides(f) {
       if (no_response) {
         $(".err").show();
       } else if (multi_word_response || hyphen_response) {
-        console.log('multiword error')
+        // console.log('multiword error')
         $(".err").hide();
         $(".multiword_error").show();
       } else if (!correct_n_responses) {
@@ -258,7 +259,7 @@ function make_slides(f) {
     },
 
     log_responses : function() {
-      console.log('log responses')
+      // console.log('log responses')
       // debugger;
       propertiesPairs = []
       if (this.stim.properties){

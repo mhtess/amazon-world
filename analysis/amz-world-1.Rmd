@@ -1,0 +1,117 @@
+---
+title: "amz world"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(jsonlite)
+library(viridis)
+library(tidyboot)
+library(brms)
+library(lme4)
+library(lmerTest)
+library(ggridges)
+library(ggstance)
+library(rwebppl)
+library(knitr)
+library(ggthemes)
+theme_set(theme_few())
+```
+
+```{r load.data}
+data.paths <- c(
+  "~/projects/amazon-world/mturk/pilot-amzworld-2/production-results/",
+  "~/projects/amazon-world/mturk/pilot-amzworld-2-b/production-results/"
+)
+
+df.subject <- data.frame()
+df.trials <- data.frame()
+df.debrief <- data.frame()
+for (data.path in data.paths){
+  result.files <- list.files(data.path, pattern="json")
+
+  expt.id <- match(data.path, data.paths)
+  for (result_file in result.files) {
+    result_json = fromJSON(paste(data.path, result_file, sep ="/"))
+    worker.id = result_json$WorkerId
+
+    df.subject = bind_rows(
+      df.subject, 
+      data.frame(result_json$answers$subject_information) %>% 
+        mutate(
+          exptid = expt.id,
+          workerid = worker.id,
+          language = gsub("\"", "", language),
+          enjoyment = gsub("\"", "", enjoyment),
+          age = gsub("\"", "", age),
+          gender = gsub("\"", "", gender),
+          problems = gsub("\"", "", problems),
+          comments = gsub("\"", "", comments)
+        ) 
+    )
+    
+    df.debrief <- bind_rows(
+      df.debrief,
+      data.frame(result_json$answers$catch_trials) %>% mutate(workerid = worker.id)
+    )
+    data.worker <- data.frame(result_json$answers$trials)
+
+    df.trials = bind_rows(
+      data.worker %>% mutate(workerid = worker.id),
+      df.trials, 
+    )
+  }
+}
+
+write_csv(df.trials, path = "../data/pilot-amworld-2/amworld-trials-2.csv")
+write_csv(df.subject, path = "../data/pilot-amworld-2/amworld-subject_information-2.csv")
+write_csv(df.debrief, path = "../data/pilot-amworld-2/amworld-debrief-2.csv")
+```
+
+
+```{r}
+df.trials <- read_csv("../data/pilot-amworld-2/amworld-trials-2.csv")
+df.subject <- read_csv("../data/pilot-amworld-2/amworld-subject_information-2.csv")
+df.debrief <- read_csv("../data/pilot-amworld-2/amworld-debrief-2.csv")
+```
+
+From debrief comments
+
+```{r}
+questionable.workers <- c(101, 84, 44)
+```
+
+
+```{r}
+df.trials.simple <- df.trials %>%
+  filter(trial_type == "simple") %>%
+  select(-starts_with("number"), -starts_with("price"), -starts_with("store"), -starts_with("objectID_"),
+         -object_1) %>%
+  rename(response = object_0) %>%
+  rowwise() %>%
+  mutate(
+    price = as.numeric(
+        gsub("\\$",  "", ifelse(verb_0 == "costs", amount_0, amount_1))
+      ),
+    weight = as.numeric(
+      strsplit(ifelse(verb_0 == "weighs", amount_0, amount_1), " pounds")[[1]][1]
+    ),
+    price_category = ifelse(verb_0 == "costs", generalAmount_0, generalAmount_1),
+    weight_category = ifelse(verb_0 == "weighs", generalAmount_0, generalAmount_1)
+  ) %>%
+  select(-verb_0, -verb_1, -amount_0, -amount_1, -generalAmount_0, -generalAmount_1)
+```
+
+
+```{r}
+df.trials.complex <- df.trials %>%
+  filter(trial_type == "complex") %>%
+  select(-starts_with("verb_"), -starts_with("generalAmount_"), -starts_with("amount_"))
+```
+
+
+
+
+

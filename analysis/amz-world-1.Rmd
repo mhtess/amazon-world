@@ -20,7 +20,7 @@ library(ggthemes)
 theme_set(theme_few())
 ```
 
-```{r load.data}
+```{r load.data, eval = F}
 data.paths <- c(
   "~/projects/amazon-world/mturk/pilot-amzworld-2/production-results/",
   "~/projects/amazon-world/mturk/pilot-amzworld-2-b/production-results/"
@@ -83,6 +83,7 @@ From debrief comments
 questionable.workers <- c(101, 84, 44)
 ```
 
+## Simple problems
 
 ```{r}
 df.trials.simple <- df.trials %>%
@@ -105,10 +106,36 @@ df.trials.simple <- df.trials %>%
 ```
 
 
+
+```{r}
+df.simple.rawResponse.counts <- df.trials.simple  %>%
+  mutate(response = tolower(response)) %>%
+  group_by(location, price_category, weight_category, price, weight) %>%
+  count(response) %>%
+  ungroup()
+
+df.simple.rawResponse.counts[
+  with(df.simple.rawResponse.counts, order(-n)), 
+  ] %>% kable()
+  
+```
+
+
+## Complex problems
+
+
 ```{r}
 df.trials.complex <- df.trials %>%
   filter(trial_type == "complex") %>%
-  select(-starts_with("verb_"), -starts_with("generalAmount_"), -starts_with("amount_"))
+  select(-starts_with("verb_"), -starts_with("generalAmount_"), -starts_with("amount_")) %>%
+  mutate(
+    price_0 = as.numeric(
+        gsub("\\$",  "", price_0)
+      ),
+    price_1 = as.numeric(
+        gsub("\\$",  "", price_1)
+    )
+  )
 ```
 
 

@@ -1,0 +1,64 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(jsonlite)
+library(viridis)
+library(tidyboot)
+library(ggridges)
+library(ggstance)
+library(knitr)
+library(ggthemes)
+theme_set(theme_few())
+```
+
+```{r}
+df.roth <- read_csv("../data/roth_4objects.csv", col_names = c("object", "price"))
+
+
+df.roth %>%
+  filter(price < 10000) %>%
+  ggplot(., aes( x = log(price), fill = object))+
+  geom_histogram(position = position_dodge())+
+  facet_wrap(~object, scales = 'free')
+```
+
+```{r}
+df.roth %>%
+  #filter(price < 10000) %>% 
+  mutate(logprice = log(price)) %>%
+  group_by(object) %>%
+  summarize(med = log(median(price)),
+            sd_log = sd(log(price))) %>%
+  kable()
+```
+
+
+Weight infromation
+
+```{r}
+df.mass <- read_csv("../data/roth_mass.csv", col_names = c("object", "weight")) %>%
+  mutate(weight_lb = weight/453)
+
+df.mass %>%
+  filter(weight_lb < 5) %>%
+  ggplot(., aes( x = weight_lb, fill = object))+
+  geom_histogram(position = position_dodge())+
+  facet_wrap(~object, scales = 'free')
+```
+
+```{r}
+df.mass %>%
+  filter(weight_lb < 1000) %>%
+  group_by(object) %>%
+  summarize(med = median(weight_lb),
+            sd_log = sd(log(weight_lb)),
+            sd = sd(weight_lb)) %>%
+  kable()
+```
+
+

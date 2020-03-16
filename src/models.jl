@@ -1,10 +1,11 @@
 using Gen
 
-include("language_models.py")
+include("language_distributions.jl")
 include("associated_quantity.jl")
 
-@gen function simple_stimulus_baseline(location, observe_price, observe_weight)
-  {:item} ~ fill_blank("There are many objects in the $location, for example the [?].")
+@gen function simple_stimulus_baseline(location, verb1, amt1, verb2, amt2)
+  prompt = "In the $location, there are many objects, for example the $(verb2 != "NA" ? "$amt1, $amt2" : amt1) [?]."
+  item ~ fill_blank(prompt)
 end
 
 @gen function simple_stimulus_model(location, observe_price, observe_weight)

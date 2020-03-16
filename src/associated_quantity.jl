@@ -120,7 +120,7 @@ function associated_quantity_set_raw_data!(rawdata)
   global raw_results = rawdata
 end
 
-function associated_data_initialize_processed_data!()
+function associated_quantity_initialize_processed_data!()
   for k in keys(raw_results)
     distribution_parameters[k] = Dict()
   end
@@ -140,6 +140,9 @@ end
 
 function associated_quantity_log_median(item, type)
   if !haskey(distribution_parameters[type], item)
+    if !haskey(raw_results[type], item)
+      return -10.0
+    end
     distribution_parameters[type][item] = median(log.(raw_results[type][item]))
   end
   distribution_parameters[type][item]

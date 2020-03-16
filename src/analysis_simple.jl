@@ -1,10 +1,14 @@
-include("src/models.jl")
+using Statistics: mean
+include("models.jl")
+
+raw_roth_data = load_extracted_raw_data("roth_dataset/raw/CURRENCY-MASS-2020-03-13T19:01:05.083.dat")
+associated_quantity_set_raw_data!(raw_roth_data)
+associated_quantity_initialize_processed_data!()
 
 # Processing human data
 using SQLite
 using CSV
 db = SQLite.DB()
-
 
 function human_trial_as_dictionary(human_datum)
   h = Dict()
@@ -60,20 +64,38 @@ function simple_model_marginal(location, verb1, amt1, verb2, amt2, n=1000)
   # Now try every object in the top N for this location.
   log_probs = Float64[]
   for (i,word) in enumerate(top_words_xl("The $location has many objects in it, for example the [?].")[1:n])
-    c[:object] = word
+    c[:item] = word
     push!(log_probs, Gen.assess(simple_stimulus_model, args, c)[1])
   end
   logsumexp(log_probs)
 end
 
+function simple_model_posterior(location, verb1, amt1, verb2, amt2, obj, n=1000)
+  simple_model_unnormalized_posterior(location, verb1, amt1, verb2, amt2, obj) -
+  simple_model_marginal(location, verb1, amt1, verb2, amt2, n)
+end
 
+# We need to filter human data that is out of vocabulary.
+simple_human_data = filter(x -> in(x[:obj], xlvocab), simple_human_data)
 results = []
 for (i,h) in enumerate(simple_human_data)
+  # Compute model posterior probability
   model_args = (h[:loc], h[:verb1], h[:amt1_n], h[:verb2], haskey(h, :amt2_n) ? h[:amt2_n] : "NA", lowercase(h[:obj]))
-  model_result = simple_model_unnormalized_posterior(model_args...) - simple_model_marginal(model_args[1:end-1]...)
-  baseline_result = Gen.assess(baseline_simple, (h[:loc], h[:verb1], h[:amt1], h[:verb2], h[:amt2][1:end-1]), choicemap(:object => lowercase(h[:obj])))[1]
-  push!(results, (h, model_result - baseline_result))
-  println((i, h, model_result - baseline_result))
-  println(length(filter(x -> x[end] > 0, results)))
-  println(mean(map(x -> x[end], results)))
+  model_posterior = simple_model_posterior(model_args...)
+  if isnan(model_posterior)
+    error("$h posterior is nan!")
+  end
+
+  # Compute baseline posterior probability
+  baseline_model_args = (h[:loc], h[:verb1], h[:amt1], h[:verb2], h[:amt2][1:end-1])
+  baseline_result = Gen.assess(simple_stimulus_baseline, baseline_model_args, choicemap(:item => lowercase(h[:obj])))[1]
+
+  # Push log ratio onto results.
+  push!(results, (h, model_posterior - baseline_result))
+
+  print("$i\t$(h[:loc]), $(h[:verb1]) $(h[:amt1]), $(h[:verb2]) $(h[:amt2]), $(h[:obj])")
+  println("\t$(model_posterior - baseline_result)")
+
+#  println(length(filter(x -> x[end] > 0, results)))
+#  println(mean(map(x -> x[end], results)))
 end

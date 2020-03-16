@@ -26,7 +26,7 @@ end
 Gen.has_output_grad(::Elaborate) = false
 Gen.has_argument_grads(::Elaborate) = (false,)
 
-const gpt2_score_text_pieces = py"""scoreTextPieces"""
+const gpt2_score_text_pieces = language_models.scoreTextPieces
 
 ##########
 # XL-Net #

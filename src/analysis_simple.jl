@@ -1,7 +1,7 @@
 using Statistics: mean
 include("models.jl")
 
-raw_roth_data = load_extracted_raw_data("roth_dataset/raw/CURRENCY-MASS-2020-03-13T19:01:05.083.dat")
+raw_roth_data = load_extracted_raw_data("roth_dataset/raw/CURRENCY-MASS-2020-03-16T17:21:03.439.dat")
 associated_quantity_set_raw_data!(raw_roth_data)
 associated_quantity_initialize_processed_data!()
 

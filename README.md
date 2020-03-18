@@ -45,3 +45,9 @@ This should make many functions available to you:
 - elaborate: use GPT-2 to elaborate on a prompt (no holes)
 
 You can see these functions being used from within Gen in the models.jl file.
+
+To use the POS tagging code (you shouldn't need to do this unless you want to retag a new vocabulary):
+Download the English language model:
+```
+python -m spacy download en_core_web_sm
+```

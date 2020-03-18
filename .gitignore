@@ -1,1 +1,5 @@
+.python-version
+src/__pycache__/
+transformers/
+venv/
 *.DS_Store

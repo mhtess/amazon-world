@@ -36,50 +36,25 @@ softmax(arr) = exp.(arr .- logsumexp(arr))
 
 xlvocab = [language_models.xl_tokenizer.decode(i) for i=0:31999]
 
-struct FillWordXL <: Distribution{String} end
-
-const fill_word_xl = FillWordXL()
-
-function Gen.logpdf(::FillWordXL, s::String, prompt::String)
-  return language_models.xl_score_word(replace(prompt, "[?]" => "<mask>"), s)
-end
-
-function Gen.random(::FillWordXL, prompt::String)
-  language_models.xl_word_logits(replace(prompt, "[?]" => "<mask>"))
-end
-
-function Gen.random(::FillWordXL, prompt::String, words)
-  words[categorical(py"""fillFromListXL"""(replace(prompt, "[?]" => "<mask>"), words).data.numpy())]
-end
-
-
-function Gen.logpdf(::FillWordXL, s::String, prompt::String, words)
-  return in(s, words) ? log(float(py"""fillFromListXL"""(replace(prompt, "[?]" => "<mask>"), words)[findfirst(x -> x == s,  words)])) : begin println("$s is not a valid word here."); -Inf; end
-end
-
-(::FillWordXL)(prompt::String) = Gen.random(FillWordXL(), prompt)
-(::FillWordXL)(prompt::String, words) = Gen.random(FillWordXL(), prompt, words)
-
-Gen.has_output_grad(::FillWordXL) = false
-Gen.has_argument_grads(::FillWordXL) = (false,)
-
-
-function top_words_xl(prompt)
+function top_words_xl(prompt, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
-  wordLogits = language_models.xl_masked_word_logits(prompt_with_mask).data.numpy()
+  wordLogits = language_models.xl_masked_word_logits(prompt_with_mask, which_mask-1).data.numpy()
   return reverse([xlvocab[i] for i in sortperm(wordLogits)])
 end
 
-function word_probs_xl(prompt)
+function word_probs_xl(prompt, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
-  logits = language_models.xl_masked_word_logits(prompt_with_mask).data.numpy()
+  logits = language_models.xl_masked_word_logits(prompt_with_mask, which_mask-1).data.numpy()
   return softmax(logits)
 end
 
-function word_probs_xl(prompt, words)
+function word_probs_xl(prompt, words::Vector{String}, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
-  logits = language_models.xl_masked_word_logits_within_candidates(prompt_with_mask, words).data.numpy()
+  logits = language_models.xl_masked_word_logits_within_candidates(prompt_with_mask, words, which_mask-1).data.numpy()
   return softmax(logits)
 end
 
 @dist fill_blank(prompt) = xlvocab[categorical(word_probs_xl(prompt))]
+@dist fill_blank_from_list(prompt, words) = words[categorical(word_probs_xl(prompt, words))]
+@dist fill_nth_blank(prompt, n) = xlvocab[categorical(word_probs_xl(prompt, n))]
+@dist fill_nth_blank_from_list(prompt, words, n) = words[categorical(word_probs_xl(prompt, words, n))]

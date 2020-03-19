@@ -8,7 +8,7 @@ include("language_distributions.jl")
 
 # Where are we going to get the general categories of noun?
 concrete_noun_categories = ["room", "store", "tool", "food", "clothing", "animal",
-                            "job", "device", "building", "place", "country", "thing",
+                            "job", "appliance", "building", "place", "country", "thing",
                             "plant", "object", "vehicle"]
 abstract_noun_categories = ["emotion", "subject"]
 
@@ -112,16 +112,14 @@ word_probs_xl("I [?] a test yesterday")[55]
 language_models.xl_tokenizer.encode("had")
 
 @gen function generate_child_noun_node(parent)
-    best_prepositions = filter(x -> in(x, prepositions), top_words_xl("I [?] a store [?] the $(parent.category) yesterday.", 2))[1:4]
-    preposition ~ fill_nth_blank_from_list("I [?] a store [?] the $(parent.category) yesterday.", best_prepositions, 2)
-    verb ~ fill_nth_blank("$(titlecase(preposition)) the $(parent.category), I [?] a store yesterday.", 1)
-    best_categories = filter(x -> in(x, concrete_noun_categories),
-                            top_words_xl("I [?] this [?] [?] the $(parent.category) yesterday."))[1:6]
-    category ~ fill_nth_blank_from_list("I $verb this [?] $preposition the $(parent.category) yesterday.", best_categories, 1)
+    best_prepositions = filter(x -> in(x, prepositions), top_words_xl("I [?] a [?] [?] the $(parent.category) yesterday.", 3))[1:4]
+    preposition ~ fill_nth_blank_from_list("I [?] a [?] [?] the $(parent.category) yesterday.", best_prepositions, 3)
+    verb ~ fill_nth_blank("$(titlecase(preposition)) the $(parent.category), I [?] a [?] yesterday.", 1)
+    category ~ fill_nth_blank_from_list("I $verb this [?] $preposition the $(parent.category) yesterday.", concrete_noun_categories, 1)
     return verb, category, preposition
 end
 
 filter(x -> in(x, prepositions), top_words_xl("I [?] a thing [?] the room yesterday.", 3))[1:4]
-generate_child_noun_node(RootNounNode("country", "visited"))
+generate_child_noun_node(RootNounNode("store", "visited"))
 
 filter(x -> in(x, prepositions), top_words_xl("I [?] a store [?] the country yesterday.", 2))[1:4]

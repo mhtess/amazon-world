@@ -4,9 +4,10 @@ import transformers
 spacy_en_model = spacy.load("en_core_web_sm")
 
 TAG_TYPES = {
-    'noun' : ['PROPN', 'NOUN'], # Excludes pronouns and numbers
-    'prep' : ['ADP'],
-    'verb' : ['VERB']
+    'noun' : ['NN', 'NNP', 'NNPS', 'NNS'], # Excludes pronouns and numbers
+    'prep' : ['RP', 'TO', 'IN'],
+    # 'verb' : ['VBD', 'VBN', 'VB', 'VBG', 'VBN', 'VBP', 'VPZ'] 
+    'verb' : ['VBD', 'VBN']
 }
 
 def pos_tag_vocab(vocab, spacy_model):
@@ -18,7 +19,7 @@ def pos_tag_vocab(vocab, spacy_model):
         if len(token_doc) < 1:
             tagged.append('NONE')
         else:
-            tagged.append(token_doc[0].pos_)
+            tagged.append(token_doc[0].tag_)
     return tagged
 
 def write_tagged_vocab(vocab, tagged, base_file, tag_type):

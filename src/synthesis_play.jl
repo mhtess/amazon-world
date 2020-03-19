@@ -45,6 +45,8 @@ println(sort(collect(zip(prepositions, (word_probs_xl("I [?] in the store.", pre
 
 word_probs_xl("I bought a [?] at the store.", concrete_noun_categories)
 
+word_probs_xl("I bought a thing [?] the store.")
+
 function fill_two_blanks(prompt)
     word1 = fill_nth_blank(prompt, 2)
     println(reverse(replace(reverse(prompt), "]?[" => reverse(word1), count=1)))

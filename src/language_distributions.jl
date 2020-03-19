@@ -32,9 +32,21 @@ const gpt2_score_text_pieces = language_models.scoreTextPieces
 # XL-Net #
 ##########
 
+xl_vocab_base_name = "xl"
+function pos_vocab_load_tagged_data(vocab_base_name)
+    pos_vocab = Dict()
+    for k in ["noun", "prep", "verb"]
+        vocab_file = "vocabs/$(vocab_base_name)_$(k).txt"
+        f = open(vocab_file);
+        pos_vocab[k] = readlines(f);
+    end
+    return pos_vocab
+end
+
 softmax(arr) = exp.(arr .- logsumexp(arr))
 
 xlvocab = [language_models.xl_tokenizer.decode(i) for i=0:31999]
+xl_pos_vocabs = pos_vocab_load_tagged_data(xl_vocab_base_name)
 
 function top_words_xl(prompt, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
@@ -48,11 +60,18 @@ function word_probs_xl(prompt, which_mask=1)
   return softmax(logits)
 end
 
+function word_probs_xl(prompt, pos::String, which_mask=1)
+  pos_words = xl_pos_vocabs[pos]
+  return word_probs_xl(prompt, pos_words)
+end
+
 function word_probs_xl(prompt, words::Vector{String}, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
   logits = language_models.xl_masked_word_logits_within_candidates(prompt_with_mask, words, which_mask-1).data.numpy()
   return softmax(logits)
 end
+
+
 
 @dist fill_blank(prompt) = xlvocab[categorical(word_probs_xl(prompt))]
 @dist fill_blank_from_list(prompt, words) = words[categorical(word_probs_xl(prompt, words))]

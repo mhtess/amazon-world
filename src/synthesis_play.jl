@@ -89,11 +89,27 @@ end
     category, verb
 end
 
+# TODO: try "PUT A __ ON THE ___"
+fill_blank("I used a [?] to wake the astronaut.")
+fill_blank("I used the [?] to extinguish the fire")
+fill_blank("I used the [?] to cross the river.")
+fill_blank("I used the [?] to help the frozen boy.")
+
+fill_blank("I [?] a thing yesterday.")
+fill_blank("I [?] a thing yesterday.")
+fill_nth_blank_from_list("I [?] [?] a store yesterday.", xl_pos_vocabs["prep"], 2)
+fill_nth_blank("I [?] [?] a thing yesterday.", 2)
+
 top_words_xl("Using the tool, I [?] the [?] yesterday.", 1)
 
 top_words_xl("I [?] a [?] [?] the store yesterday.", 3)
 
+fill_blank_from_list("I [?] a test yesterday", xl_pos_vocabs["verb"])
+
+fill_blank("I [?] a test yesterday")
+word_probs_xl("I [?] a test yesterday")[55]
 # TODO: sharpen distribution
+language_models.xl_tokenizer.encode("had")
 
 @gen function generate_child_noun_node(parent)
     best_prepositions = filter(x -> in(x, prepositions), top_words_xl("I [?] a store [?] the $(parent.category) yesterday.", 2))[1:4]

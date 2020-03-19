@@ -60,20 +60,17 @@ function word_probs_xl(prompt, which_mask=1)
   return softmax(logits)
 end
 
-function word_probs_xl(prompt, pos::String, which_mask=1)
-  pos_words = xl_pos_vocabs[pos]
-  return word_probs_xl(prompt, pos_words)
-end
 
 function word_probs_xl(prompt, words::Vector{String}, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
   logits = language_models.xl_masked_word_logits_within_candidates(prompt_with_mask, words, which_mask-1).data.numpy()
-  return softmax(logits)
+  return logits
 end
-
 
 
 @dist fill_blank(prompt) = xlvocab[categorical(word_probs_xl(prompt))]
 @dist fill_blank_from_list(prompt, words) = words[categorical(word_probs_xl(prompt, words))]
+@dist fill_blank_from_pos(prompt, pos) = fill_blank_from_list(prompt, getindex(xl_pos_vocabs, pos))
 @dist fill_nth_blank(prompt, n) = xlvocab[categorical(word_probs_xl(prompt, n))]
 @dist fill_nth_blank_from_list(prompt, words, n) = words[categorical(word_probs_xl(prompt, words, n))]
+@dist fill_nth_blank_from_pos(prompt, pos, n) = fill_nth_blank_from_list(prompt, getindex(xl_pos_vocabs, pos), n)

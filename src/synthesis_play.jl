@@ -68,26 +68,49 @@ top_words_xl("In the place, I [?] a [?] yesterday.", 1)
 
 
 abstract type Node end
-struct RootNounNode <: Node
+mutable struct RootNounNode <: Node
     category :: String
     verb :: String
+    observed_val :: Union{String, Nothing}
 end
 
-struct InternalNounNode <: Node
+mutable struct InternalNounNode <: Node
     category :: String
     verb :: String
     preposition :: String
     parent :: Node
+    observed_val :: Union{String, Nothing}
 end
 
+concrete_noun_categories = ["room", "store", "tool", "food", "clothing", "animal",
+                            "job", "appliance", "building", "place", "country", "thing",
+                            "plant", "object", "vehicle"]
+
+fill_nth_blank("An example of a place is a [?], [?], or [?].", 1)
+
+
 @dist uniform_from_list(l) = l[uniform_discrete(1, length(l))]
+
+@gen function observe_value_root(root)
+    # Generic prompt that gets examples for any parent category.
+    article = in(root.category[1], ["a", "e", "i", "o", "u"]) ? "an" : "a"
+    observed_category ~ fill_blank("I $(root.verb) $article $(root.category) yesterday, in particular I $(root.verb) a [?], which is an example of $article $(root.category).")
+    return observed_category
+end
+
 @gen function generate_root_noun_node()
     category ~ uniform_from_list(concrete_noun_categories)
     article = in(category[1], ["a", "e", "i", "o", "u"]) ? "an" : "a"
     verb ~ fill_blank("I [?] $article $category yesterday.")
-    # RootNounNode(category, verb)
-    category, verb
+    root_node = RootNounNode(category, verb, nothing)
+    
+    # Choose whether to observe.
+    observe_root ~ bernoulli(0.5)
+    observed_val = observe_root ? {:observed_val} ~ observe_value_root(root_node) : nothing
+    root_node.observed_val = observed_val
+    return root_node
 end
+generate_root_noun_node()
 
 # TODO: try "PUT A __ ON THE ___"
 fill_blank("I used a [?] to wake the astronaut.")
@@ -104,22 +127,36 @@ top_words_xl("Using the tool, I [?] the [?] yesterday.", 1)
 
 top_words_xl("I [?] a [?] [?] the store yesterday.", 3)
 
-fill_blank_from_list("I [?] a test yesterday", xl_pos_vocabs["verb"])
-
-fill_blank("I [?] a test yesterday")
-word_probs_xl("I [?] a test yesterday")[55]
 # TODO: sharpen distribution
-language_models.xl_tokenizer.encode("had")
+
+@gen function observe_value_child(child, parent)
+    # Generic prompt that gets examples for any parent category.
+    article = in(root.category[1], ["a", "e", "i", "o", "u"]) ? "an" : "a"
+    observed_category ~ fill_blank("I $(root.verb) $article $(root.category) yesterday, in particular I $(root.verb) a [?], which is an example of $article $(root.category).")
+    return observed_category
+end
+
+root1 = RootNounNode("store", "visited", "grocery")
+root_val = root1.observed_val == nothing ? root1.category : root1.observed_val
 
 @gen function generate_child_noun_node(parent)
-    best_prepositions = filter(x -> in(x, prepositions), top_words_xl("I [?] a [?] [?] the $(parent.category) yesterday.", 3))[1:4]
-    preposition ~ fill_nth_blank_from_list("I [?] a [?] [?] the $(parent.category) yesterday.", best_prepositions, 3)
-    verb ~ fill_nth_blank("$(titlecase(preposition)) the $(parent.category), I [?] a [?] yesterday.", 1)
-    category ~ fill_nth_blank_from_list("I $verb this [?] $preposition the $(parent.category) yesterday.", concrete_noun_categories, 1)
+    parent_value = parent.observed_val == nothing ? parent.category : parent.observed_val
+    
+    best_prepositions = filter(x -> in(x, prepositions), top_words_xl("I [?] a [?] [?] the $(parent_value) yesterday.", 3))[1:4]
+    preposition ~ fill_nth_blank_from_list("I [?] a [?] [?] the $(parent_value) yesterday.", best_prepositions, 3)
+    verb ~ fill_nth_blank("$(titlecase(preposition)) the $(parent_value), I [?] a [?] yesterday.", 1)
+    category ~ fill_nth_blank_from_list("I $verb this [?] $preposition the $(parent_value) yesterday.", concrete_noun_categories, 1)
     return verb, category, preposition
 end
 
+# Unobserved parent.
+generate_child_noun_node(RootNounNode("store", "visited", nothing))
+
+# Observed parent.
+generate_child_noun_node(RootNounNode("store", "visited", "grocery"))
+
+
 filter(x -> in(x, prepositions), top_words_xl("I [?] a thing [?] the room yesterday.", 3))[1:4]
-generate_child_noun_node(RootNounNode("store", "visited"))
+
 
 filter(x -> in(x, prepositions), top_words_xl("I [?] a store [?] the country yesterday.", 2))[1:4]

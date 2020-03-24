@@ -135,7 +135,66 @@ println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(prompt, 1))[1:15]
 # ["bat", "baseball", "computer", "pitch", "bathroom", "ball", "bullpen", "telephone", "pen", "internet", "field", "refrigerator", "kitchen", "team", "restroom"]
 
 #### 1-8 
+# 1-8-1-a: Maxwell is planning a heist. His gang needs three items.
+goal_subj = "Maxwell"
+goal_vp = "plans a heist"
+goal = "$goal_subj $goal_vp"
+prompt = "$goal, so $goal_subj needs some things. In particular, $goal_subj needs to use the [?]."
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(prompt, 1))[1:15])
+# ["computer", "words", "telephone", "phrase", "hammer", "word", "gun", "new", "key", "name", "equipment", "phone", "tools", "item", "wrench"]
 
+# 1-8-1-b Give Maxwell a disguise.
+goal_imperative = "give Maxwell a disguise"
+goal_subj = "I"
+goal = "$goal_subj need to $goal_imperative"
+goal = "$goal, so $goal_subj need a [?]."
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(goal, 1))[1:15])
+["disguise", "cloak", "mask", "costume", "hat", "name", "wizard", "plan", "computer", "new", "wardrobe", "car", "cover", "suit", "mirror"]
+
+# 1-8-1-b Maxwell could use tools to break into a safe.
+goal_subj = "Maxwell"
+goal_vp = "uses tools to break into a safe"
+goal = "$goal_subj $goal_vp"
+prompt = "$goal, so $goal_subj needs some things. In particular, $goal_subj needs to use the [?]."
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(prompt, 1))[1:15])
+# ["wrench", "hammer", "tools", "shotgun", "key", "tool", "mouse", "opener", "password", "word", "keys", "drill", "chisel", "flashlight", "words"]
+
+##### 1-9 -- Kinda weird but ok.
+# 1-9-1-a: Complete the missing links!
+# ---
+# 1-9-1-b: This is an evolutionary ladder. lol
+goal_declarative = "This is an evolutionary ladder"
+goal_subj = "I"
+prompt = "$goal_declarative, so $goal_subj need a [?]."
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(prompt, 1))[1:15])
+# ["ladder", "method", "name", "hierarchy", "tree", "graph", "clue", "calculator", "diagram", "microscope", "starter", "new", "tool", "step", "top"]
+
+# 1-9-1-c:  What were the mightiest reptiles? What is the caveman’s closest ancestor?
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The mightest reptiles were the [?]", 1))[1:15])
+# ["dinosaur", "elephants", "lizard", "birds", "giant", "crocodile", "Mam", "turtle", "giants", "elephant", "dragon", "mammoth", "humans", "horses", "man"]
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The caveman’s closest ancestor is the [?]", 1))[1:15])
+# ["man", "ho", "cave", "chimpanzee", "mammoth", "modern", "dinosaur", "prehistoric", "Ho", "Human", "proto", "erect", "giant", "Mam", "monkey"]
+# lol at ho
+
+##### 1-10
+# 1-10-1-a: Help the knight across the lake!
+goal_imperative = "help the knight across the lake"
+goal_subj = "I"
+goal = "$goal_subj need to $goal_imperative"
+prompt = "$goal, so $goal_subj need a [?]."
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(prompt, 1))[1:15])
+# ["boat", "knight", "bridge", "sword", "horse", "rope", "catapult", "wizard", "raft", "shield", "ship", "friend", "dagger", "blade", "dragon"]
+alt_prompt = "$goal, so $goal_subj need some things. In particular, $goal_subj need a [?] "
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(alt_prompt, 1))[1:15])
+# ["sword", "boat", "bridge", "new", "rope", "horse", "spear", "cross", "light", "water", "magic", "silver", "shield", "blade", "lot"]
+
+# 1-10-1-b: Electrocute the Water to destroy the sea creature.
+goal_imperative = "electrocute the water to destroy the sea creature"
+goal_subj = "I"
+goal = "$goal_subj need to $goal_imperative"
+prompt = "$goal, so $goal_subj need a [?]."
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl(prompt, 1))[1:15])
+# ["generator", "battery", "torch", "charger", "wire", "flashlight", "device", "lamp", "light", "spark", "boat", "cable", "power", "voltage", "solution"]
 
 ##### 4-2 -- 3 parts
 # 4-2-1-a: The man needs a haircut! Give the stylist tool she needs!

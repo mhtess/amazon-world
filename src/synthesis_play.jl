@@ -112,29 +112,6 @@ end
 end
 generate_root_noun_node()
 
-# TODO: try "PUT A __ ON THE ___"
-fill_blank("I used a [?] to wake the astronaut.")
-fill_blank("I used the [?] to extinguish the fire")
-fill_blank("I used the [?] to cross the river.")
-fill_blank("I used the [?] to help the frozen boy.")
-
-fill_blank("I [?] a thing yesterday.")
-fill_blank("I [?] a thing yesterday.")
-fill_nth_blank_from_list("I [?] [?] a store yesterday.", xl_pos_vocabs["prep"], 2)
-fill_nth_blank("I [?] [?] a thing yesterday.", 2)
-
-top_words_xl("Using the tool, I [?] the [?] yesterday.", 1)
-
-println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The car needs replacement parts to get back on track, so it needs [?] [?].", 2))[1:15])
-println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The step brothers love sports. 
-They used a [?].", 1))[1:15])
-
-println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The step brothers love sports. 
-The sport they love is [?].", 1))[1:15])
-println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The step brother also loves soccer. He used a [?]", 1))[1:15])
-
-top_words_xl("I [?] a [?] [?] the store yesterday.", 3)
-
 # TODO: sharpen distribution
 
 @gen function observe_value_child(child, parent)

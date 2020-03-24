@@ -125,6 +125,14 @@ fill_nth_blank("I [?] [?] a thing yesterday.", 2)
 
 top_words_xl("Using the tool, I [?] the [?] yesterday.", 1)
 
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The car needs replacement parts to get back on track, so it needs [?] [?].", 2))[1:15])
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The step brothers love sports. 
+They used a [?].", 1))[1:15])
+
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The step brothers love sports. 
+The sport they love is [?].", 1))[1:15])
+println(filter(x -> in(x, xl_pos_vocabs["noun"]), top_words_xl("The step brother also loves soccer. He used a [?]", 1))[1:15])
+
 top_words_xl("I [?] a [?] [?] the store yesterday.", 3)
 
 # TODO: sharpen distribution

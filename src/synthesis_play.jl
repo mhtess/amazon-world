@@ -187,14 +187,15 @@ end
 @gen function generate_child_noun_node(parent, verbose=true, use_observe=nothing)
     parent_value = parent.observed_val == nothing ? parent.category : parent.observed_val
     # preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), the [?] that I [?] yesterday was a ", titlecase.(prepositions), 1)
+    # latent_category ~ fill_nth_blank_from_list("I [?] this [?] [?] that $(parent_value) yesterday. It was a ", concrete_noun_categories, 2)
     
-    preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] a [?] yesterday.", titlecase.(prepositions), 1)
+    latent_category ~ fill_nth_blank_from_list("[?] that $(parent_value) yesterday, I [?] this [?] yesterday, and it was a ", concrete_noun_categories, 2)
     
-    latent_category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I [?] a [?] yesterday. It was a ", concrete_noun_categories, 2)
+    preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] this $latent_category yesterday, and it was a ", titlecase.(prepositions), 1)
     
-    verb ~ fill_nth_blank("$(titlecase(preposition)) that $(parent_value), I [?] a $latent_category yesterday, and it was a ", 1)
+    verb ~ fill_nth_blank("$(titlecase(preposition)) that $(parent_value), I [?] this $latent_category yesterday, and it was a ", 1)
     
-    category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I $verb a [?] yesterday. It was a",concrete_noun_categories, 1)
+    category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I $verb this [?] yesterday, and it was a",concrete_noun_categories, 1)
 
     child_node = InternalNounNode(category, verb, preposition, parent, nothing, [])
     

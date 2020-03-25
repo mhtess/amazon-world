@@ -14,12 +14,6 @@ abstract_noun_categories = ["emotion", "subject", "thing", "object"]
 
 prepositions = ["of", "with", "at", "from", "into", "during", "including", "until", "against", "among", "throughout", "despite", "towards", "upon", "to", "in", "for", "on", "by", "about", "like", "through", "over", "before", "between", "after", "since", "without", "under", "within", "along", "following", "across", "behind", "behind", "beyond", "plus", "except", "but", "up", "out", "around", "down", "off", "above", "near"]
 
-# Generating a concrete noun
-# With no parent, just pick at
-# random:
-nodes = []
-push!(nodes, concrete_noun_categories[uniform_discrete(1, length(concrete_noun_categories))])
-
 @dist uniform_from_list(l) = l[uniform_discrete(1, length(l))]
 
 function print_until(prob, prompt)
@@ -62,6 +56,7 @@ mutable struct InternalNounNode <: Node
     preposition :: String
     parent :: Node
     observed_val :: Union{String, Nothing}
+    children :: Array{Node}
 end
 
 
@@ -75,15 +70,22 @@ end
 function render_text(node, verbose=true)
     # Renders text as we go based on the parent.
     article = get_article(node.category)
-    text = "I $(node.verb) $article $(node.category)"
+    
+    also = " "
+    if typeof(node) == InternalNounNode
+        also = length(node.parent.children) > 0 ? " also " : " "
+    end
+    text = "I$also$(node.verb) $article $(node.category)"
 
     if typeof(node) == InternalNounNode
         parent_noun = node.parent.observed_val == nothing ? node.parent.category : node.parent.observed_val
-        text = " $(node.preposition) that $parent_noun, $text"
+        text = "$text $(lowercase(node.preposition)) that $parent_noun"
     end
     if (node.observed_val != nothing)
-        text = "$text. It was $(get_article(node.observed_val)) $(node.observed_val)."
+        text = "$text, and the $(node.category) was $(get_article(node.observed_val)) $(node.observed_val)"
     end
+
+    text = "$text."
     if verbose println(text) end
     return text
 end 
@@ -116,15 +118,6 @@ end
     return observed_category, observed_category_text
 end
 observe_value_root_category_specific(RootNounNode("store", "visited", nothing))
-prompt = "An example of a specific kind of room is a [?]room"
-prompt = "A specfic example of a store is a [?] store"
-
-fill_nth_blank("I saw an animal. Specifically, I saw a [?]", 1)
-println(top_words_xl("An example of a specific job is a [?].", 1)[1:15])
-concrete_noun_categories = ["room", "store", "tool", "food", "clothing", "animal",
-                            "job", "appliance", "building", "place", "country",
-                            "plant", "vehicle", "product"]
-
 
 @gen function observe_value_root_sharpened(root)
     # Generates root noun observations as generically as possible.
@@ -153,7 +146,6 @@ end
     category = use_category == nothing ? {:category} ~ uniform_from_list(concrete_noun_categories) : use_category
     article = get_article(category)
     root_node = RootNounNode(category, "", nothing, [])
-
     
     # Choose whether to observe.
     observe_root = use_observe == nothing ? {:observe_root} ~ bernoulli(0.5) :  use_observe 
@@ -167,7 +159,7 @@ end
     return root_node
 end
 
-for category in ["toy"]
+for category in ["store"]
     println("Demoing root category: $category")
     for i in 1:15
         generate_root_noun_node(true, category, true)
@@ -181,13 +173,12 @@ end
 end
 
 
-@gen function observe_value_child_top_examples(child, parent_value, n=500)
+@gen function observe_value_child_top_examples(child, parent_value, n=100)
     article = get_article(child.category)
     top_examples = top_words_xl("A specific example of $article $(child.category) is a [?], and", 1)[1:n]
     top_examples = filter(x -> x != child.category, top_examples)
     
-    observed_category ~ fill_nth_blank_from_list("$(titlecase(child.preposition)) that $parent_value, I $(child.verb) this $(child.category). It was a [?], and", top_examples, 1)
-    
+    observed_category ~ fill_nth_blank_from_list("I $(child.verb) a $(child.category) $(lowercase(child.preposition)) that $parent_value, and the $(child.category) was a [?], and", top_examples, 1)
     # observed_category ~ fill_nth_blank_from_list("$(titlecase(child.preposition)) that $parent_value, the $(child.category) that I $(child.verb) was a [?], and", top_examples, 1)
     return observed_category
 end
@@ -195,13 +186,17 @@ end
 
 @gen function generate_child_noun_node(parent, verbose=true, use_observe=nothing)
     parent_value = parent.observed_val == nothing ? parent.category : parent.observed_val
-    best_prepositions = filter(x -> in(x, prepositions), top_words_xl("I [?] a specific [?] [?] that $(parent_value) yesterday.", 3))[1:4]
-    preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] a [?] yesterday.", titlecase.(best_prepositions), 1)
+    # preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), the [?] that I [?] yesterday was a ", titlecase.(prepositions), 1)
     
-    category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), the [?] that I [?] yesterday was a", concrete_noun_categories, 1)
-    verb ~ fill_nth_blank("$(titlecase(preposition)) that $(parent_value), the $category that I [?] yesterday was a", 1)
+    preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] a [?] yesterday.", titlecase.(prepositions), 1)
     
-    child_node = InternalNounNode(category, verb, preposition, parent, nothing)
+    latent_category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I [?] a [?] yesterday. It was a ", concrete_noun_categories, 2)
+    
+    verb ~ fill_nth_blank("$(titlecase(preposition)) that $(parent_value), I [?] a $latent_category yesterday, and it was a ", 1)
+    
+    category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I $verb a [?] yesterday. It was a",concrete_noun_categories, 1)
+
+    child_node = InternalNounNode(category, verb, preposition, parent, nothing, [])
     
     observe_child = use_observe == nothing ? {:observe_child} ~ bernoulli(0.5) :  use_observe 
     observed_val = observe_child ? {:observed_val} ~ observe_value_child_top_examples(child_node, parent_value) : nothing
@@ -211,9 +206,7 @@ end
     return child_node
 end
 
-demo = ["store"]
-
-
+demo = ["tool"]
 for category in demo
     println("Demoing root category: $category")
     for i in 1:10
@@ -223,29 +216,30 @@ for category in demo
     end
 end
 
-@gen function generate_tree(verbose=true, max_depth=2, max_child_nodes=2)
+# TODO: quantity nodes.
+@gen function generate_tree(verbose=true, max_depth=2, min_child_nodes=1, max_child_nodes=2)
     tree = []
     for depth in 1:max_depth
-        println("Now on depth $depth")
+        if verbose println("Now on depth $depth") end
         if depth == 1
-            nodes = [generate_root_noun_node(verbose, nothing, nothing)]
+            nodes_at_depth = [{:tree_parent => nothing} ~ generate_root_noun_node(verbose, nothing, nothing)]
         else
-            nodes = []
+            nodes_at_depth = []
             for parent in last(tree)
-                num_child_nodes ~ uniform_discrete(0, 2)
+                num_child_nodes = {:tree_parent => parent => :num_child_nodes} ~ uniform_discrete(min_child_nodes, max_child_nodes) # Maybe this should change with depth or number of other nodes at this level.
+                if verbose println("Generating $num_child_nodes children") end
                 for j in 1:num_child_nodes
-                    child = generate_child_noun_node(root, true, nothing)
+                    if verbose println("Generating $j of $num_child_nodes children") end
+                    child = {:tree_parent => parent => :child => j} ~ generate_child_noun_node(parent, true, nothing)
                     push!(parent.children, child)
-                    push!(nodes, child)
+                    push!(nodes_at_depth, child)
                 end
-            end
+            end    
         end
-        if length(nodes) > 0
-            push!(tree, nodes)
-        end
+        push!(tree, nodes_at_depth)
     end
+    return tree
 end
-
-generate_tree()
+generate_tree(true, 2, 2)
 
 

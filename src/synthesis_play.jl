@@ -10,9 +10,16 @@ include("language_distributions.jl")
 concrete_noun_categories = ["room", "store", "tool", "food", "clothing", "animal",
                             "job", "appliance", "building", "place", "country",
                             "plant", "vehicle", "product"]
+quantity_noun_categories = ["tool", "food", "clothing", "animal", "appliance", "plant", "vehicle", "product"]
 abstract_noun_categories = ["emotion", "subject", "thing", "object"]
 
 prepositions = ["of", "with", "at", "from", "into", "during", "including", "until", "against", "among", "throughout", "despite", "towards", "upon", "to", "in", "for", "on", "by", "about", "like", "through", "over", "before", "between", "after", "since", "without", "under", "within", "along", "following", "across", "behind", "behind", "beyond", "plus", "except", "but", "up", "out", "around", "down", "off", "above", "near"]
+
+
+#### Associated Quantity
+include("associated_quantity.jl")
+extract_raw_quantities(["MASS", "CURRENCY", "LENGTH"])
+
 
 @dist uniform_from_list(l) = l[uniform_discrete(1, length(l))]
 
@@ -43,6 +50,11 @@ end
 
 abstract type Node end
 
+mutable struct QuantityNode <: Node
+    category :: String
+    observed_val :: Float
+    unit :: String
+end 
 mutable struct RootNounNode <: Node
     category :: String
     verb :: String
@@ -122,16 +134,17 @@ observe_value_root_category_specific(RootNounNode("store", "visited", nothing))
 @gen function observe_value_root_sharpened(root, t=0.5)
     # Generates root noun observations as generically as possible.
     article = get_article(root.category)
-    observed_category ~ fill_blank("A specific example of $article $(root.category) is a [?], and", t)
+    example_article = fill_blank_from_list("One good example of $article $(root.category) is [?] [?], and ", ["a", "the", "an", ""])
+    observed_category ~ fill_blank("One good example of $article $(root.category) is $example_article [?], and", t)
     return observed_category
 end 
 
 for category in concrete_noun_categories
     println("Demoing root category: $category")
-    for t in [1.0, 0.8, 0.75, 0.5]
+    for t in [1.0, 0.95, 0.9]
         println("Temperature: $t")
         samples = []
-        for i in 1:15
+        for i in 1:30
             root = RootNounNode(category, "", nothing, [])
             push!(samples, observe_value_root_sharpened(root, t))
         end
@@ -140,13 +153,28 @@ for category in concrete_noun_categories
     println("\n")
 end
 
-
  @gen function observe_value_root_top_examples(root, n=500)
     # Only allows top n examples
     article = get_article(root.category)
-    top_examples = top_words_xl("A specific example of $article $(root.category) is a [?], and", 1)[1:n]
+    example_article ~ fill_blank_from_list("One good example of $article $(root.category) is [?] [?], and ", ["a", "the", "an", ""])
+    top_examples = top_words_xl("One good example of $article $(root.category) is $example_article [?], and", 1)[1:n]
     top_examples = filter(x -> x != root.category, top_examples)
-    observed_category ~ fill_blank_from_list("A specific example of a $(root.category) is a [?], and", top_examples)
+    observed_category ~ fill_blank_from_list("One good example of $(root.category) is $example_article [?], and", top_examples)
+end
+
+for category in concrete_noun_categories
+    println("Demoing root category: $category")
+    samples = []
+    for n in [1000, 500, 200, 100]
+        println("n: $n")
+        samples = []
+        for i in 1:30
+            root = RootNounNode(category, "", nothing, [])
+            push!(samples, observe_value_root_top_examples(root, n))
+        end
+        println(samples)
+    end
+    println("\n")
 end
 
 @gen function observe_value_root_top_examples_verb(root, n=50)
@@ -167,8 +195,8 @@ end
     observed_val = observe_root ? {:observed_val} ~ observe_value_root_top_examples(root_node) : nothing
     root_node.observed_val = observed_val
     
-    noun =  root_node.observed_val == nothing ? root_node.category : root_node.observed_val
-    verb ~ fill_blank("I [?] a $noun yesterday.")
+    verb_prompt =  root_node.observed_val == nothing ? "I [?] a $(root_node.category)." : "I [?] a $(root_node.category), and the $(root_node.category) was $(get_article(root_node.observed_val)) $(root_node.observed_val)."
+    verb ~ fill_blank(verb_prompt, 1.0)
     root_node.verb = verb
     render_text(root_node, verbose)
     return root_node
@@ -187,14 +215,15 @@ end
     return observed_category
 end
 
-
-@gen function observe_value_child_top_examples(child, parent_value, n=100)
+@gen function observe_value_child_top_examples(child, parent_value, n=500)
     article = get_article(child.category)
-    top_examples = top_words_xl("A specific example of $article $(child.category) is a [?], and", 1)[1:n]
+    example_article ~ fill_blank_from_list("One good example of $article $(child.category) is [?] [?], and ", ["a", "the", "an", ""])
+    top_examples = top_words_xl("One good example of $article $(child.category) is $example_article [?], and", 1)[1:n]
     top_examples = filter(x -> x != child.category, top_examples)
     
-    observed_category ~ fill_nth_blank_from_list("I $(child.verb) a $(child.category) $(lowercase(child.preposition)) that $parent_value, and the $(child.category) was a [?], and", top_examples, 1)
-    # observed_category ~ fill_nth_blank_from_list("$(titlecase(child.preposition)) that $parent_value, the $(child.category) that I $(child.verb) was a [?], and", top_examples, 1)
+    observed_category ~ fill_nth_blank_from_list("$(titlecase(child.preposition)) that $(parent_value), I $(child.verb) this $(child.category) yesterday, and it was $example_article [?], and", top_examples, 1)
+    
+    # observed_category ~ fill_nth_blank_from_list("I $(child.verb) a $(child.category) $(lowercase(child.preposition)) that $parent_value, and the $(child.category) was a [?], and", top_examples, 1)
     return observed_category
 end
 
@@ -204,13 +233,13 @@ end
     # preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), the [?] that I [?] yesterday was a ", titlecase.(prepositions), 1)
     # latent_category ~ fill_nth_blank_from_list("I [?] this [?] [?] that $(parent_value) yesterday. It was a ", concrete_noun_categories, 2)
     
-    latent_category ~ fill_nth_blank_from_list("[?] that $(parent_value) yesterday, I [?] this [?] yesterday, and it was a ", concrete_noun_categories, 2)
+    latent_category ~ fill_nth_blank_from_list("[?] that $(parent_value) yesterday, I [?] this [?] yesterday, and it was", concrete_noun_categories, 2)
     
-    preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] this $latent_category yesterday, and it was a ", titlecase.(prepositions), 1)
+    preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] this $latent_category yesterday, and it was", titlecase.(prepositions), 1)
     
-    verb ~ fill_nth_blank("$(titlecase(preposition)) that $(parent_value), I [?] this $latent_category yesterday, and it was a ", 1)
+    verb ~ fill_nth_blank("$(titlecase(preposition)) that $(parent_value), I [?] this $latent_category yesterday, and it was", 1)
     
-    category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I $verb this [?] yesterday, and it was a",concrete_noun_categories, 1)
+    category ~ fill_nth_blank_from_list("$(titlecase(preposition)) that $(parent_value), I $verb this [?] yesterday, and it was",concrete_noun_categories, 1)
 
     child_node = InternalNounNode(category, verb, preposition, parent, nothing, [])
     
@@ -222,13 +251,14 @@ end
     return child_node
 end
 
-demo = ["tool"]
-for category in demo
+for category in concrete_noun_categories
     println("Demoing root category: $category")
-    for i in 1:10
-        root = generate_root_noun_node(true, category, nothing)
-        generate_child_noun_node(root, true, true)
-        println("\n")
+    for parent_observe in [true, false]
+        for i in 1:20
+            root = generate_root_noun_node(true, category, parent_observe)
+            generate_child_noun_node(root, true, true)
+            println("\n")
+        end
     end
 end
 

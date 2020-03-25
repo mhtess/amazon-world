@@ -119,12 +119,27 @@ end
 end
 observe_value_root_category_specific(RootNounNode("store", "visited", nothing))
 
-@gen function observe_value_root_sharpened(root)
+@gen function observe_value_root_sharpened(root, t=0.5)
     # Generates root noun observations as generically as possible.
     article = get_article(root.category)
-    observed_category ~ fill_blank_sharpened("An example of a specific $(root.category) is a [?].")
+    observed_category ~ fill_blank("A specific example of $article $(root.category) is a [?], and", t)
     return observed_category
 end 
+
+for category in concrete_noun_categories
+    println("Demoing root category: $category")
+    for t in [1.0, 0.8, 0.75, 0.5]
+        println("Temperature: $t")
+        samples = []
+        for i in 1:15
+            root = RootNounNode(category, "", nothing, [])
+            push!(samples, observe_value_root_sharpened(root, t))
+        end
+        println(samples)
+    end
+    println("\n")
+end
+
 
  @gen function observe_value_root_top_examples(root, n=500)
     # Only allows top n examples

@@ -153,13 +153,13 @@ for category in concrete_noun_categories
     println("\n")
 end
 
- @gen function observe_value_root_top_examples(root, n=500)
+@gen function observe_value_root_top_examples(root, n=500)
     # Only allows top n examples
     article = get_article(root.category)
     example_article ~ fill_blank_from_list("One good example of $article $(root.category) is [?] [?], and ", ["a", "the", "an", ""])
     top_examples = top_words_xl("One good example of $article $(root.category) is $example_article [?], and", 1)[1:n]
     top_examples = filter(x -> x != root.category, top_examples)
-    observed_category ~ fill_blank_from_list("One good example of $(root.category) is $example_article [?], and", top_examples)
+    observed_category ~ fill_blank_from_list("One good example of $article $(root.category) is $example_article [?], and", top_examples)
 end
 
 for category in concrete_noun_categories
@@ -233,7 +233,7 @@ end
     # preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), the [?] that I [?] yesterday was a ", titlecase.(prepositions), 1)
     # latent_category ~ fill_nth_blank_from_list("I [?] this [?] [?] that $(parent_value) yesterday. It was a ", concrete_noun_categories, 2)
     
-    latent_category ~ fill_nth_blank_from_list("[?] that $(parent_value) yesterday, I [?] this [?] yesterday, and it was", concrete_noun_categories, 2)
+    latent_category ~ fill_nth_blank_from_list("[?] that $(parent_value) yesterday, I [?] this [?] yesterday, and it was", concrete_noun_categories, 3)
     
     preposition ~ fill_nth_blank_from_list("[?] that $(parent_value), I [?] this $latent_category yesterday, and it was", titlecase.(prepositions), 1)
     

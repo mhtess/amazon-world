@@ -1,2 +1,7 @@
+.python-version
+src/__pycache__/
+transformers/
+venv/
+roth_dataset/
 *.DS_Store
 .Rproj.user

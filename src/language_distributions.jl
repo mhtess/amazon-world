@@ -32,54 +32,85 @@ const gpt2_score_text_pieces = language_models.scoreTextPieces
 # XL-Net #
 ##########
 
+xl_vocab_base_name = "xl"
+function pos_vocab_load_tagged_data(vocab_base_name)
+    pos_vocab = Dict()
+    for k in ["noun", "prep", "verb"]
+        vocab_file = "vocabs/$(vocab_base_name)_$(k).txt"
+        f = open(vocab_file);
+        pos_vocab[k] = readlines(f);
+    end
+    return pos_vocab
+end
+
 softmax(arr) = exp.(arr .- logsumexp(arr))
 
 xlvocab = [language_models.xl_tokenizer.decode(i) for i=0:31999]
+xl_pos_vocabs = pos_vocab_load_tagged_data(xl_vocab_base_name)
 
-struct FillWordXL <: Distribution{String} end
-
-const fill_word_xl = FillWordXL()
-
-function Gen.logpdf(::FillWordXL, s::String, prompt::String)
-  return language_models.xl_score_word(replace(prompt, "[?]" => "<mask>"), s)
-end
-
-function Gen.random(::FillWordXL, prompt::String)
-  language_models.xl_word_logits(replace(prompt, "[?]" => "<mask>"))
-end
-
-function Gen.random(::FillWordXL, prompt::String, words)
-  words[categorical(py"""fillFromListXL"""(replace(prompt, "[?]" => "<mask>"), words).data.numpy())]
-end
-
-
-function Gen.logpdf(::FillWordXL, s::String, prompt::String, words)
-  return in(s, words) ? log(float(py"""fillFromListXL"""(replace(prompt, "[?]" => "<mask>"), words)[findfirst(x -> x == s,  words)])) : begin println("$s is not a valid word here."); -Inf; end
-end
-
-(::FillWordXL)(prompt::String) = Gen.random(FillWordXL(), prompt)
-(::FillWordXL)(prompt::String, words) = Gen.random(FillWordXL(), prompt, words)
-
-Gen.has_output_grad(::FillWordXL) = false
-Gen.has_argument_grads(::FillWordXL) = (false,)
-
-
-function top_words_xl(prompt)
+function word_logits_xl(prompt, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
-  wordLogits = language_models.xl_masked_word_logits(prompt_with_mask).data.numpy()
-  return reverse([xlvocab[i] for i in sortperm(wordLogits)])
+  logits = language_models.xl_masked_word_logits(prompt_with_mask, which_mask-1).data.numpy()
+  return logits
 end
 
-function word_probs_xl(prompt)
+function word_logits_xl(prompt, words::Vector{String}, which_mask=1)
   prompt_with_mask = replace(prompt, "[?]" => "<mask>")
-  logits = language_models.xl_masked_word_logits(prompt_with_mask).data.numpy()
-  return softmax(logits)
+  logits = language_models.xl_masked_word_logits_within_candidates(prompt_with_mask, words, which_mask-1).data.numpy()
+  return logits
 end
 
-function word_probs_xl(prompt, words)
-  prompt_with_mask = replace(prompt, "[?]" => "<mask>")
-  logits = language_models.xl_masked_word_logits_within_candidates(prompt_with_mask, words).data.numpy()
-  return softmax(logits)
+function top_words_xl(prompt, which_mask=1)
+  logits = word_logits_xl(prompt, which_mask)
+  return reverse([xlvocab[i] for i in sortperm(logits)])
 end
+
+function top_words_xl(prompt, words::Vector{String}, which_mask=1)
+  logits = word_logits_xl(prompt, words, which_mask)
+  return reverse([words[i] for i in sortperm(logits)])
+end
+
+function word_probs_xl(prompt, which_mask=1, t=1.0)
+  return softmax(word_logits_xl(prompt, which_mask) ./ t)
+end
+
+function word_probs_xl(prompt, words::Vector{String}, which_mask=1, t = 1.0)
+  return softmax(word_logits_xl(prompt, words, which_mask) ./ t)
+end
+
 
 @dist fill_blank(prompt) = xlvocab[categorical(word_probs_xl(prompt))]
+@dist fill_blank_temp(prompt, t) = xlvocab[categorical(word_probs_xl(prompt, 1, t))]
+@dist fill_blank_from_list(prompt, words) = words[categorical(word_probs_xl(prompt, words))]
+@dist fill_blank_from_pos(prompt, pos) = fill_blank_from_list(prompt, getindex(xl_pos_vocabs, pos))
+@dist fill_nth_blank(prompt, n) = xlvocab[categorical(word_probs_xl(prompt, n))]
+@dist fill_nth_blank_from_list(prompt, words, n) = words[categorical(word_probs_xl(prompt, words, n))]
+@dist fill_nth_blank_from_pos(prompt, pos, n) = fill_nth_blank_from_list(prompt, getindex(xl_pos_vocabs, pos), n)
+
+
+
+normalize(probs) = probs ./ sum(probs)
+function product_of_categoricals(prob_arrays::Vector{Vector{Float32}})
+  normalize(reduce((a, b) -> a .* b, prob_arrays))
+end
+function product_of_log_categoricals(log_probs::Vector{Vector{Float32}})
+  softmax(sum(log_probs))
+end
+function product_of_experts_probs(prompts)
+  product_of_log_categoricals([word_logits_xl(args...) for args in prompts])
+end
+@dist product_of_experts(prompts) = xlvocab[categorical(product_of_experts_probs(prompts))]
+#
+# product_of_experts([("I am thinking of a [?] I'd like to start.", 1), ("A good example of a kind of store is [?] [?] store.", 2)])
+#
+# [xlvocab[i] for i in sortperm(product_of_experts_probs([("And [?] the tool, I [?] [?] [?].", 1), ("And I [?] [?] [?] [?] the tool.", 4)]))]
+#
+#
+# sort(product_of_experts_probs([("And [?] the tool, I [?] [?] [?].", 1),
+#                                ("And I [?] [?] [?] [?] the tool.", 4)]))
+# product_of_experts([("And using the tool, I [?] the [?].", 1),
+#                     ("And I [?] the [?] with the tool.", 1),
+#                     ("With the tool, I [?] the appliance yesterday.", 1)])
+#
+# top_words_xl("And using the tool, I [?] the [?] yesterday.")
+# top_words_xl("With the tool, I [?] the [?] yesterday.", 1)

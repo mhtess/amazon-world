@@ -83,20 +83,21 @@ xl_tokenizer = transformers.XLNetTokenizer.from_pretrained('xlnet-large-cased')
 xl_model = transformers.XLNetLMHeadModel.from_pretrained('xlnet-large-cased')
 
 @Memoize
-def xl_masked_word_logits(textWithMask):
+def xl_masked_word_logits(textWithMask, which_mask = 0):
   input_ids = torch.tensor(xl_tokenizer.encode(PADDING_TEXT + textWithMask, add_special_tokens=True)).unsqueeze(0)
-  mask_idx = input_ids.tolist()[0].index(6)
+  mask_indices = [i for i, x in enumerate(input_ids.tolist()[0]) if x == 6]
   perm_mask = torch.zeros((1, input_ids.shape[1], input_ids.shape[1]), dtype=torch.float)
-  perm_mask[:, :, mask_idx] = 1.0
-  target_mapping = torch.zeros((1, 1, input_ids.shape[1]), dtype=torch.float)
-  target_mapping[0, 0, mask_idx] = 1.0
+  perm_mask[:, :, mask_indices] = 1.0
+  target_mapping = torch.zeros((1, len(mask_indices), input_ids.shape[1]), dtype=torch.float)
+  for i in range(len(mask_indices)):
+    target_mapping[0, i, mask_indices[i]] = 1.0
   outputs = xl_model(input_ids, perm_mask=perm_mask, target_mapping=target_mapping)
   next_token_logits = outputs[0]  # Output has shape [target_mapping.size(0), target_mapping.size(1), config.vocab_size]
-  return next_token_logits[0][0]
+  return next_token_logits[0][which_mask]
 
-def xl_masked_word_logits_within_candidates(textWithMask, possibilities):
+def xl_masked_word_logits_within_candidates(textWithMask, possibilities, which_mask = 0):
   possible_tokens = torch.tensor([xl_tokenizer.encode(word)[0] for word in possibilities])
-  return F.softmax(xlWordLogits(textWithMask)[possible_tokens])
+  return xl_masked_word_logits(textWithMask, which_mask)[possible_tokens]
 
-def xl_score_word(textWithMask, word):
-  return float(torch.log(F.softmax(xlWordLogits(textWithMask))[xl_tokenizer.encode(word)[0]]))
+def xl_score_word(textWithMask, word, which_mask = 0):
+  return float(torch.log(F.softmax(xl_masked_word_logits(textWithMask, which_mask))[xl_tokenizer.encode(word)[0]]))

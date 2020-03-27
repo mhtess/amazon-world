@@ -1,4 +1,4 @@
-using Gen
+topusing Gen
 
 include("language_distributions.jl")
 include("associated_quantity.jl")

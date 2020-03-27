@@ -1,6 +1,17 @@
 # Scratch pad for Scribblenauts prompts.
 include("language_distributions.jl")
 
+# Types of sentences:
+    # Imperative: prepare the schoolhouse for a new year.   
+        # Goal subject: "I"; Goal = verb phrase.
+    # Imperative, but with a second subject.  "Give the farmer three different farm animals."
+                                              # "Help the knight cross the river."
+                                              
+    # Declarative. "The car needs replacement parts to get back on track." "This woman needs her hair styled"
+    # Questions. "What kinds of supplies does a student need?"
+
+# Using multiple hints / goals -- product distribution / mixtures in order to find mutually satisfying likelihoods
+
 # https://scribblenautsanswers.com/scribblenauts-remix
 ##### 1-1
 ## 1-1-1-a: Cut the Tree down and grab the real starite!

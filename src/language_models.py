@@ -97,7 +97,7 @@ def xl_masked_word_logits(textWithMask, which_mask = 0):
 
 def xl_masked_word_logits_within_candidates(textWithMask, possibilities, which_mask = 0):
   possible_tokens = torch.tensor([xl_tokenizer.encode(word)[0] for word in possibilities])
-  return F.softmax(xl_masked_word_logits(textWithMask, which_mask)[possible_tokens])
+  return xl_masked_word_logits(textWithMask, which_mask)[possible_tokens]
 
 def xl_score_word(textWithMask, word, which_mask = 0):
   return float(torch.log(F.softmax(xl_masked_word_logits(textWithMask, which_mask))[xl_tokenizer.encode(word)[0]]))
